@@ -1,14 +1,7 @@
-// -----------------------------------------------------------------------
 // Filename: widget_annotated_loading.dart
-// Original Author: Dan Grissom
-// Creation Date: 5/27/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains a widget for displaying a loading
 //              animation with a timeout feature.
 
-////////////////////////////////////////////////////////////////////////////////////////////
-// Imports
-////////////////////////////////////////////////////////////////////////////////////////////
 // Dart imports
 import 'dart:async';
 
@@ -56,7 +49,8 @@ class WidgetAnnotatedLoading extends ConsumerStatefulWidget {
   }) : super(key: key);
 
   @override
-  ConsumerState<WidgetAnnotatedLoading> createState() => _WidgetAnnotatedLoading();
+  ConsumerState<WidgetAnnotatedLoading> createState() =>
+      _WidgetAnnotatedLoading();
 }
 
 //////////////////////////////////////////////////////////////////
@@ -72,7 +66,8 @@ class _WidgetAnnotatedLoading extends ConsumerState<WidgetAnnotatedLoading> {
   int _displayIndex = 0;
 
   // Static variables
-  static String _lastLoadingText = ""; // Used if widget being re-used instead of disposed
+  static String _lastLoadingText =
+      ""; // Used if widget being re-used instead of disposed
 
   ////////////////////////////////////////////////////////////////
   // Runs when widget is disposed
@@ -81,7 +76,9 @@ class _WidgetAnnotatedLoading extends ConsumerState<WidgetAnnotatedLoading> {
   void dispose() {
     // Cancel timer since widget is being disposed
     _timeoutTimer?.cancel();
-    AppLogger.print("TIMER CANCELLED @ ${_timeoutSecs - _countDownSecs}/$_timeoutSecs (${widget.loadingText}) ");
+    AppLogger.print(
+      "TIMER CANCELLED @ ${_timeoutSecs - _countDownSecs}/$_timeoutSecs (${widget.loadingText}) ",
+    );
 
     super.dispose();
   }
@@ -118,31 +115,38 @@ class _WidgetAnnotatedLoading extends ConsumerState<WidgetAnnotatedLoading> {
       _countDownSecs = widget.timeOutSecs;
       _timeoutSecs = widget.timeOutSecs;
       _lastLoadingText = widget.loadingText;
-      AppLogger.print("TIMER INIT: 0/$_timeoutSecs (${widget.loadingText}), _isInit=$_isInit");
+      AppLogger.print(
+        "TIMER INIT: 0/$_timeoutSecs (${widget.loadingText}), _isInit=$_isInit",
+      );
 
       ///////////////////////////////////////////////////////////
       // Launch the timer to trigger every 1s
       _timeoutTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
         // If the loading widget has changed, extend/modify the timer
-        if (_lastLoadingText.isNotEmpty && _lastLoadingText != widget.loadingText) {
+        if (_lastLoadingText.isNotEmpty &&
+            _lastLoadingText != widget.loadingText) {
           // Update the timer
           int remainingSecs = _timeoutSecs - timer.tick;
           if (remainingSecs < widget.timeOutSecs) {
             // Extend the timer
             _timeoutSecs += widget.timeOutSecs - remainingSecs;
             AppLogger.print(
-                "TIMER EXTENDED @ ${timer.tick}s ($_lastLoadingText => ${widget.loadingText} @ +${widget.timeOutSecs}s timeout)");
+              "TIMER EXTENDED @ ${timer.tick}s ($_lastLoadingText => ${widget.loadingText} @ +${widget.timeOutSecs}s timeout)",
+            );
           } else {
             // Modify the timer
             _timeoutSecs = timer.tick + widget.timeOutSecs;
             AppLogger.print(
-                "TIMER CONTRACTED @ ${timer.tick}s ($_lastLoadingText => ${widget.loadingText} @ ${widget.timeOutSecs}s timeout)");
+              "TIMER CONTRACTED @ ${timer.tick}s ($_lastLoadingText => ${widget.loadingText} @ ${widget.timeOutSecs}s timeout)",
+            );
           }
 
           // Update the last loading text
           _lastLoadingText = widget.loadingText;
         }
-        AppLogger.debug("TIMER TICK ${timer.tick}/$_timeoutSecs (${widget.loadingText})");
+        AppLogger.debug(
+          "TIMER TICK ${timer.tick}/$_timeoutSecs (${widget.loadingText})",
+        );
 
         // Update the countdown seconds
         setState(() {
@@ -156,7 +160,9 @@ class _WidgetAnnotatedLoading extends ConsumerState<WidgetAnnotatedLoading> {
         // If timer is complete, cancel the timer and execute the callback
         if (timer.tick >= _timeoutSecs) {
           // Cancel timer due to timeout
-          AppLogger.debug("TIMER EXPIRED @ ${timer.tick}/$_timeoutSecs  (${widget.loadingText})");
+          AppLogger.debug(
+            "TIMER EXPIRED @ ${timer.tick}/$_timeoutSecs  (${widget.loadingText})",
+          );
           _timeoutTimer?.cancel();
 
           // Attempt to execute signout or callback
@@ -164,16 +170,20 @@ class _WidgetAnnotatedLoading extends ConsumerState<WidgetAnnotatedLoading> {
             if (widget.timeOutSignsOut) {
               // Cancel the sign-in, show error message, logout and notify listeners
               Snackbar.show(
-                  SnackbarDisplayType.SB_ERROR,
-                  "${widget.timeOutTextPrefix} took too long; logging out to protect your privacy. Please check internet connection and try again",
-                  context);
+                SnackbarDisplayType.SB_ERROR,
+                "${widget.timeOutTextPrefix} took too long; logging out to protect your privacy. Please check internet connection and try again",
+                context,
+              );
               await _providerAuth.clearAuthedUserDetailsAndSignout();
             } else if (widget.timeOutCallback != null) {
               // Execute the callback method and display a message
               widget.timeOutCallback!();
               if (!widget.quietTimeOut) {
-                Snackbar.show(SnackbarDisplayType.SB_ERROR,
-                    "${widget.timeOutTextPrefix} took too long. Please check your internet connection.", context);
+                Snackbar.show(
+                  SnackbarDisplayType.SB_ERROR,
+                  "${widget.timeOutTextPrefix} took too long. Please check your internet connection.",
+                  context,
+                );
               }
             }
           } else {}
@@ -215,20 +225,24 @@ class _WidgetAnnotatedLoading extends ConsumerState<WidgetAnnotatedLoading> {
             height: widget.height,
           ),
         ),
-        SizedBox(
-          height: widget.loadingText.isEmpty ? 0 : 10,
-        ),
+        SizedBox(height: widget.loadingText.isEmpty ? 0 : 10),
         if (widget.loadingText.isNotEmpty || widget.loadingTexts != null)
           Center(
-              child: Text(
-            getLoadingText(),
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineMedium,
-          )),
-        if (widget.timeOutEnabled && _countDownSecs <= widget.timeOutCountdownBeginsAtSecs && !widget.quietTimeOut)
+            child: Text(
+              getLoadingText(),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+          ),
+        if (widget.timeOutEnabled &&
+            _countDownSecs <= widget.timeOutCountdownBeginsAtSecs &&
+            !widget.quietTimeOut)
           Center(
-              child: Text("Timing out in $_countDownSecs seconds...",
-                  style: const TextStyle(fontStyle: FontStyle.italic))),
+            child: Text(
+              "Timing out in $_countDownSecs seconds...",
+              style: const TextStyle(fontStyle: FontStyle.italic),
+            ),
+          ),
       ],
     );
   }

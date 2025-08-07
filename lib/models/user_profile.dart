@@ -1,13 +1,6 @@
-// -----------------------------------------------------------------------
 // Filename: user_profile.dart
-// Original Author: Dan Grissom
-// Creation Date: 5/22/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains the model for the user profile
 
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
 // Dart imports
 import 'dart:convert';
 import 'dart:io';
@@ -25,11 +18,7 @@ enum AccountCreationStep {
 // NOTE: Do NOT change the order of these enums. They are used for permissions
 // checking (e.g., Developer has access to Beta and Production, but not vice versa by
 // the fact that Developer is the highest enum value)
-enum PermissionLevel {
-  PRODUCTION,
-  BETA,
-  DEVELOPER,
-}
+enum PermissionLevel { PRODUCTION, BETA, DEVELOPER }
 
 //////////////////////////////////////////////////////////////////////////
 // Model class definitition
@@ -44,18 +33,18 @@ class UserProfile {
   String _email = "";
   double _pitch = 1.0;
   double _speed = 0.5;
-  Map<String, dynamic> _iosVoice = {
-    'name': "Karen",
-    'locale': "en-GB",
-  };
+  Map<String, dynamic> _iosVoice = {'name': "Karen", 'locale': "en-GB"};
   Map<String, dynamic> _androidVoice = {
     'name': "en-gb-x-gba-local",
     'locale': "en-GB",
   };
   PermissionLevel _permissionLevel = PermissionLevel.PRODUCTION;
   int _accountCreationTime = 0;
-  DateTime _dateLastPasswordChange = DateTime.now().add(const Duration(days: -365));
-  AccountCreationStep _accountCreationStep = AccountCreationStep.ACC_STEP_ONBOARDING_PROFILE_CONTACT_INFO;
+  DateTime _dateLastPasswordChange = DateTime.now().add(
+    const Duration(days: -365),
+  );
+  AccountCreationStep _accountCreationStep =
+      AccountCreationStep.ACC_STEP_ONBOARDING_PROFILE_CONTACT_INFO;
   bool _voicePromptsEnabled = true;
   bool _realTimeAssistantEnabled = true;
 
@@ -88,17 +77,12 @@ class UserProfile {
     _email = "";
     _pitch = 1.0;
     _speed = 0.5;
-    _iosVoice = {
-      'name': "Karen",
-      'locale': "en-GB",
-    };
-    _androidVoice = {
-      'name': "en-gb-x-gba-local",
-      'locale': "en-GB",
-    };
+    _iosVoice = {'name': "Karen", 'locale': "en-GB"};
+    _androidVoice = {'name': "en-gb-x-gba-local", 'locale': "en-GB"};
     _permissionLevel = PermissionLevel.PRODUCTION;
     _accountCreationTime = 0;
-    _accountCreationStep = AccountCreationStep.ACC_STEP_ONBOARDING_PROFILE_CONTACT_INFO;
+    _accountCreationStep =
+        AccountCreationStep.ACC_STEP_ONBOARDING_PROFILE_CONTACT_INFO;
     _voicePromptsEnabled = true;
     _realTimeAssistantEnabled = false;
   }
@@ -107,26 +91,40 @@ class UserProfile {
   // Creates a new User profile and populates using the JSON object passed
   // in as parameter
   ////////////////////////////////////////////////////////////////////////
-  UserProfile.defFromJsonDbObject(Map<String, dynamic> jsonObject, String firebaseUid) {
+  UserProfile.defFromJsonDbObject(
+    Map<String, dynamic> jsonObject,
+    String firebaseUid,
+  ) {
     firstName = jsonObject["first_name"] ?? "";
     lastName = jsonObject["last_name"] ?? "";
     email = jsonObject["email"] ?? "";
     if (jsonObject["ttsSettings"] != null) {
       pitch = jsonObject['ttsSettings']["pitch"] ?? 1.0;
       speed = jsonObject['ttsSettings']['speed'] ?? 0.5;
-      _iosVoice = jsonObject['ttsSettings']['selectedVoices']['ios_voice'] ?? {'name': "Karen", 'locale': "en-GB"};
-      _androidVoice = jsonObject['ttsSettings']['selectedVoices']['android_voice'] ??
+      _iosVoice =
+          jsonObject['ttsSettings']['selectedVoices']['ios_voice'] ??
+          {'name': "Karen", 'locale': "en-GB"};
+      _androidVoice =
+          jsonObject['ttsSettings']['selectedVoices']['android_voice'] ??
           {'name': "en-gb-x-gba-local", 'locale': "en-GB"};
     }
     uid = firebaseUid;
     permissionLevel = _getPermissionLevelFromString(
-        jsonObject["permission_level"] ?? _getStringFromPermissionLevel(PermissionLevel.PRODUCTION));
-    _dateLastPasswordChange = (jsonObject["date_last_password_change"] as Timestamp?)?.toDate() ??
+      jsonObject["permission_level"] ??
+          _getStringFromPermissionLevel(PermissionLevel.PRODUCTION),
+    );
+    _dateLastPasswordChange =
+        (jsonObject["date_last_password_change"] as Timestamp?)?.toDate() ??
         DateTime.now().add(const Duration(days: -365));
-    accountCreationStep = getStepFromString(jsonObject["account_creation_step"] ??
-        getStringFromStep(AccountCreationStep.ACC_STEP_ONBOARDING_PROFILE_CONTACT_INFO));
+    accountCreationStep = getStepFromString(
+      jsonObject["account_creation_step"] ??
+          getStringFromStep(
+            AccountCreationStep.ACC_STEP_ONBOARDING_PROFILE_CONTACT_INFO,
+          ),
+    );
     _voicePromptsEnabled = jsonObject["voice_prompts_enabled"] ?? true;
-    _realTimeAssistantEnabled = jsonObject["real_time_assistant_enabled"] ?? false;
+    _realTimeAssistantEnabled =
+        jsonObject["real_time_assistant_enabled"] ?? false;
   }
 
   ////////////////////////////////////////////////////////////////////////
@@ -149,7 +147,8 @@ class UserProfile {
   set permissionLevel(PermissionLevel value) => _permissionLevel = value;
   set accountCreationTime(int value) => _accountCreationTime = value;
   set dateLastPasswordChange(DateTime value) => _dateLastPasswordChange = value;
-  set accountCreationStep(AccountCreationStep value) => _accountCreationStep = value;
+  set accountCreationStep(AccountCreationStep value) =>
+      _accountCreationStep = value;
   set voicePromptsEnabled(bool value) => _voicePromptsEnabled = value;
   set realTimeAssistantEnabled(bool value) => _realTimeAssistantEnabled = value;
 
@@ -188,15 +187,20 @@ class UserProfile {
   // by checking if key data items exist
   ////////////////////////////////////////////////////////////////////////
   bool isMissingKeyData() {
-    return (uid.isEmpty || firstName.isEmpty || lastName.isEmpty || email.isEmpty);
+    return (uid.isEmpty ||
+        firstName.isEmpty ||
+        lastName.isEmpty ||
+        email.isEmpty);
   }
 
   ////////////////////////////////////////////////////////////////
   // Converts from enum status to string (for DB usage)
   ////////////////////////////////////////////////////////////////
   String getStringFromStep(AccountCreationStep step) {
-    if (step == AccountCreationStep.ACC_STEP_ONBOARDING_PROFILE_CONTACT_INFO) return "Contact";
-    if (step == AccountCreationStep.ACC_STEP_ONBOARDING_COMPLETE) return "Complete";
+    if (step == AccountCreationStep.ACC_STEP_ONBOARDING_PROFILE_CONTACT_INFO)
+      return "Contact";
+    if (step == AccountCreationStep.ACC_STEP_ONBOARDING_COMPLETE)
+      return "Complete";
     return "Contact";
   }
 
@@ -204,8 +208,10 @@ class UserProfile {
   // Converts from String to enum status (for DB usage)
   ////////////////////////////////////////////////////////////////
   AccountCreationStep getStepFromString(String stepStr) {
-    if (stepStr == "Contact") return AccountCreationStep.ACC_STEP_ONBOARDING_PROFILE_CONTACT_INFO;
-    if (stepStr == "Complete") return AccountCreationStep.ACC_STEP_ONBOARDING_COMPLETE;
+    if (stepStr == "Contact")
+      return AccountCreationStep.ACC_STEP_ONBOARDING_PROFILE_CONTACT_INFO;
+    if (stepStr == "Complete")
+      return AccountCreationStep.ACC_STEP_ONBOARDING_COMPLETE;
     return AccountCreationStep.ACC_STEP_ONBOARDING_COMPLETE;
   }
 
@@ -252,11 +258,16 @@ class UserProfile {
       },
     };
     jsonObject["ttsSettings"] = ttsSettings;
-    jsonObject["email_lowercase"] = email.toLowerCase(); // Added for bf_manage_share_request GCF
-    jsonObject["permission_level"] = _getStringFromPermissionLevel(permissionLevel);
+    jsonObject["email_lowercase"] = email
+        .toLowerCase(); // Added for bf_manage_share_request GCF
+    jsonObject["permission_level"] = _getStringFromPermissionLevel(
+      permissionLevel,
+    );
     jsonObject["account_creation_time"] = accountCreationTime;
     jsonObject["date_last_password_change"] = _dateLastPasswordChange;
-    jsonObject["account_creation_step"] = getStringFromStep(accountCreationStep);
+    jsonObject["account_creation_step"] = getStringFromStep(
+      accountCreationStep,
+    );
     jsonObject["voice_prompts_enabled"] = voicePromptsEnabled;
     jsonObject["real_time_assistant_enabled"] = realTimeAssistantEnabled;
 

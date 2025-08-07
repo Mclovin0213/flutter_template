@@ -1,14 +1,7 @@
-// -----------------------------------------------------------------------
 // Filename: colors.dart
-// Original Author: Dan Grissom
-// Creation Date: 5/18/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains all of the custom colors used in the
 //              MIC app.
 
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
 // Flutter external package imports
 import 'package:flutter/material.dart';
 
@@ -25,8 +18,23 @@ class CustomColors {
   static const Color offWhite = Color(0xFFF7f7F7);
   static const Color cloudGrey = Color(0xFFF1F0EB);
 
-  static const Color primaryBackgroundLightMode = Color.fromARGB(255, 255, 255, 255);
-  static const Color primaryBackgroundDarkMode = Color.fromARGB(255, 33, 33, 33);
-  static const Color primaryNavBarLightMode = Color.fromARGB(255, 219, 219, 219);
+  static const Color primaryBackgroundLightMode = Color.fromARGB(
+    255,
+    255,
+    255,
+    255,
+  );
+  static const Color primaryBackgroundDarkMode = Color.fromARGB(
+    255,
+    33,
+    33,
+    33,
+  );
+  static const Color primaryNavBarLightMode = Color.fromARGB(
+    255,
+    219,
+    219,
+    219,
+  );
   static const Color primaryNavBarDarkMode = Color.fromARGB(255, 68, 68, 68);
 }

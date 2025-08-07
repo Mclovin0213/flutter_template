@@ -1,20 +1,11 @@
-// -----------------------------------------------------------------------
 // Filename: screen_home.dart
-// Original Author: Dan Grissom
-// Creation Date: 10/31/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains the screen for a dummy home screen
 //               history screen.
-
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
 
 // Flutter imports
 import 'dart:async';
 
 // Flutter external package imports
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 
@@ -70,10 +61,13 @@ class _ScreenHomeState extends ConsumerState<ScreenHome> {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         shape: ShapeBorder.lerp(CircleBorder(), StadiumBorder(), 0.5),
-        onPressed: () =>
-            Snackbar.show(SnackbarDisplayType.SB_INFO, 'You clicked the floating button on the home screen!', context),
+        onPressed: () => Snackbar.show(
+          SnackbarDisplayType.SB_INFO,
+          'You clicked the floating button on the home screen!',
+          context,
+        ),
         splashColor: Theme.of(context).primaryColor,
-        child: Icon(FontAwesomeIcons.plus),
+        child: Icon(Icons.add),
       ),
       body: Text('Home'),
     );

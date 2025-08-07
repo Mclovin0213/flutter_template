@@ -1,17 +1,9 @@
-// -----------------------------------------------------------------------
 // Filename: theme.dart
-// Original Author: Dan Grissom
-// Creation Date: 5/21/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains the themes for the app.
-
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
 
 // Flutter external package imports
 import 'package:flutter/material.dart';
-import 'package:csc322_starter_app/theme/colors.dart';
+import 'package:flutter_template/theme/colors.dart';
 
 //////////////////////////////////////////////////////////////////////////
 // LIGHT-MODE THEME
@@ -40,9 +32,7 @@ final ThemeData lightTheme = ThemeData(
   textButtonTheme: milLightTextButtonTheme,
   textTheme: Typography.blackRedmond,
   bottomNavigationBarTheme: milLightBottomNavigationBarTheme,
-  appBarTheme: AppBarTheme(
-    backgroundColor: CustomColors.cloudGrey,
-  ),
+  appBarTheme: AppBarTheme(backgroundColor: CustomColors.cloudGrey),
   iconTheme: IconThemeData(color: CustomColors.statusInfo),
   floatingActionButtonTheme: milFloatingActionButtonTheme,
 );
@@ -116,10 +106,11 @@ final ThemeData darkTheme = ThemeData(
 //////////////////////////////////////////////////////////////////////////
 // FLOATING ACTION BUTTON THEME
 //////////////////////////////////////////////////////////////////////////
-FloatingActionButtonThemeData milFloatingActionButtonTheme = FloatingActionButtonThemeData(
-  backgroundColor: CustomColors.statusInfo,
-  foregroundColor: Colors.white,
-);
+FloatingActionButtonThemeData milFloatingActionButtonTheme =
+    FloatingActionButtonThemeData(
+      backgroundColor: CustomColors.statusInfo,
+      foregroundColor: Colors.white,
+    );
 
 //////////////////////////////////////////////////////////////////////////
 // INPUT DECORATION THEME
@@ -128,21 +119,15 @@ InputDecorationTheme milLightInputDecorationTheme = InputDecorationTheme(
   filled: true,
   fillColor: Colors.grey[200],
   border: const UnderlineInputBorder(
-    borderSide: BorderSide(
-      color: Colors.black,
-    ),
+    borderSide: BorderSide(color: Colors.black),
     borderRadius: BorderRadius.vertical(top: Radius.circular(8.0)),
   ),
   enabledBorder: const UnderlineInputBorder(
-    borderSide: BorderSide(
-      color: Colors.black,
-    ),
+    borderSide: BorderSide(color: Colors.black),
     borderRadius: BorderRadius.vertical(top: Radius.circular(8.0)),
   ),
   focusedBorder: const UnderlineInputBorder(
-    borderSide: BorderSide(
-      color: Colors.black,
-    ),
+    borderSide: BorderSide(color: Colors.black),
     borderRadius: BorderRadius.vertical(top: Radius.circular(8.0)),
   ),
   floatingLabelStyle: const TextStyle(color: Colors.black),
@@ -164,9 +149,7 @@ ElevatedButtonThemeData milLightElevatedButtonTheme = ElevatedButtonThemeData(
     backgroundColor: MaterialStateProperty.all<Color>(CustomColors.statusInfo),
     foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
     shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-      RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.0),
-      ),
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
     ),
   ),
 );
@@ -176,7 +159,9 @@ ElevatedButtonThemeData milLightElevatedButtonTheme = ElevatedButtonThemeData(
 //////////////////////////////////////////////////////////////////////////
 TextButtonThemeData milLightTextButtonTheme = TextButtonThemeData(
   style: ButtonStyle(
-    padding: MaterialStateProperty.all<EdgeInsetsGeometry>(const EdgeInsets.all(0)),
+    padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+      const EdgeInsets.all(0),
+    ),
     textStyle: MaterialStateProperty.all<TextStyle>(
       const TextStyle(fontWeight: FontWeight.bold),
     ),
@@ -185,17 +170,20 @@ TextButtonThemeData milLightTextButtonTheme = TextButtonThemeData(
 );
 TextButtonThemeData milDarkTextButtonTheme = TextButtonThemeData(
   style: ButtonStyle(
-    padding: MaterialStateProperty.all<EdgeInsetsGeometry>(const EdgeInsets.all(0)),
+    padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+      const EdgeInsets.all(0),
+    ),
     textStyle: MaterialStateProperty.all<TextStyle>(
       const TextStyle(fontWeight: FontWeight.bold),
     ),
-    foregroundColor: MaterialStateProperty.all<Color>(CustomColors.statusInfoDarkMode),
+    foregroundColor: MaterialStateProperty.all<Color>(
+      CustomColors.statusInfoDarkMode,
+    ),
   ),
 );
 
 //////////////////////////////////////////////////////////////////////////
 // BOTTOM NAVIGATION BAR THEME (LIGHT MODE)
 //////////////////////////////////////////////////////////////////////////
-BottomNavigationBarThemeData milLightBottomNavigationBarTheme = BottomNavigationBarThemeData(
-  backgroundColor: CustomColors.cloudGrey,
-);
+BottomNavigationBarThemeData milLightBottomNavigationBarTheme =
+    BottomNavigationBarThemeData(backgroundColor: CustomColors.cloudGrey);

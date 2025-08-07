@@ -1,13 +1,7 @@
 // -----------------------------------------------------------------------
 // Filename: screen_home.dart
-// Original Author: Dan Grissom
-// Creation Date: 10/31/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains the primary app bar.
 
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
 // Flutter imports
 
 // Flutter external package imports
@@ -18,14 +12,19 @@ import 'package:flutter/material.dart';
 import '../../util/message_display/snackbar.dart';
 import '../../theme/colors.dart';
 
-class WidgetPrimaryAppBar extends ConsumerStatefulWidget implements PreferredSizeWidget {
+class WidgetPrimaryAppBar extends ConsumerStatefulWidget
+    implements PreferredSizeWidget {
   // Constant parameters passedin
   final Widget title;
   final List<Widget>? actionButtons;
   bool inCurrentMeeting;
 
-  WidgetPrimaryAppBar({Key? key, required this.title, this.actionButtons, this.inCurrentMeeting = false})
-      : super(key: key);
+  WidgetPrimaryAppBar({
+    Key? key,
+    required this.title,
+    this.actionButtons,
+    this.inCurrentMeeting = false,
+  }) : super(key: key);
   // UserData().updateProfileImage();
 
   @override
@@ -79,13 +78,16 @@ class _PrimaryAppBar extends ConsumerState<WidgetPrimaryAppBar> {
       actions: [
         IconButton(
           icon: const Icon(Icons.add, color: CustomColors.statusError),
-          onPressed: () =>
-              Snackbar.show(SnackbarDisplayType.SB_INFO, 'You clicked the action button in the app bar!', context),
+          onPressed: () => Snackbar.show(
+            SnackbarDisplayType.SB_INFO,
+            'You clicked the action button in the app bar!',
+            context,
+          ),
         ),
         if (widget.actionButtons != null)
           ...widget.actionButtons!.map((e) {
             return e;
-          }).toList()
+          }).toList(),
       ],
     );
   }

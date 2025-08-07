@@ -1,30 +1,19 @@
-// Flutter imports
-// -----------------------------------------------------------------------
 // Filename: widget_profile_avatar.dart
-// Original Author: Dan Grissom
-// Creation Date: 5/29/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains code for a profile avatar widget that
 //              displays a user's profile image or initials.
 
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
 // Flutter external package imports
 import 'package:flutter/material.dart';
 
-//////////////////////////////////////////////////////////////////////////
-// StateFUL widget which manages state. Simply initializes the
-// state object.
-//////////////////////////////////////////////////////////////////////////
 class ProfileAvatar extends StatefulWidget {
-  const ProfileAvatar(
-      {super.key,
-      required this.radius,
-      this.initialsSize = 0,
-      required this.userImage,
-      required this.userWholeName,
-      this.isInAppBar = false});
+  const ProfileAvatar({
+    super.key,
+    required this.radius,
+    this.initialsSize = 0,
+    required this.userImage,
+    required this.userWholeName,
+    this.isInAppBar = false,
+  });
 
   //radius of CircleAvatar
   final double radius;
@@ -37,9 +26,6 @@ class ProfileAvatar extends StatefulWidget {
   State<ProfileAvatar> createState() => _ProfileAvatarState();
 }
 
-//////////////////////////////////////////////////////////////////////////
-// The actual STATE which is managed by the above widget.
-//////////////////////////////////////////////////////////////////////////
 class _ProfileAvatarState extends State<ProfileAvatar> {
   var _isInit = true;
   String initials = "";
@@ -76,7 +62,9 @@ class _ProfileAvatarState extends State<ProfileAvatar> {
 
   void getInitials() {
     // Update initial size, if needed
-    textSize = widget.initialsSize == 0 ? (widget.radius * .7) : widget.initialsSize;
+    textSize = widget.initialsSize == 0
+        ? (widget.radius * .7)
+        : widget.initialsSize;
 
     // Now, get the initials themselves
     try {
@@ -102,15 +90,15 @@ class _ProfileAvatarState extends State<ProfileAvatar> {
     // If current image is null, set to intials. Else, display user's photo
     // If no user data is loaded, the profile photo will default to "ME" initials
     if (widget.userImage == null && initials != "") {
-      return Stack(children: [
-        CircleAvatar(
+      return Stack(
+        children: [
+          CircleAvatar(
             radius: widget.radius,
             backgroundColor: Color.fromARGB(255, 137, 137, 137),
-            child: Text(
-              initials,
-              style: TextStyle(fontSize: textSize),
-            )),
-      ]);
+            child: Text(initials, style: TextStyle(fontSize: textSize)),
+          ),
+        ],
+      );
     } else if (!widget.isInAppBar) {
       // This version of the avatar has the gapless playback feature
       // enabled to prevent the image from flickering when the user

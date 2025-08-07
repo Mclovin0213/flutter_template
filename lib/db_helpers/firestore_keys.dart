@@ -1,8 +1,5 @@
 // -----------------------------------------------------------------------
 // Filename: firestore_keys.dart
-// Original Author: Dan Grissom
-// Creation Date: 5/22/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains the Firestore keys used throughout the
 //              app for consistency and ease of maintenance.
 

@@ -1,15 +1,7 @@
-// -----------------------------------------------------------------------
 // Filename: screen_login_validation.dart
-// Original Author: Dan Grissom
-// Creation Date: 5/21/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file checks the users authentication status and
 //              ensures they progress along the proper screen sequence.
 
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
-// Dart imports
 import 'dart:async';
 
 // Flutter external package imports
@@ -29,10 +21,6 @@ import 'screen_splash.dart';
 import 'screen_auth.dart';
 import '../../main.dart';
 
-//////////////////////////////////////////////////////////////////////////
-// StateFUL widget which manages state. Simply initializes the
-// state object.
-//////////////////////////////////////////////////////////////////////////
 class ScreenLoginValidation extends ConsumerStatefulWidget {
   // Route name declaration
   static const routeName = '/';
@@ -40,28 +28,16 @@ class ScreenLoginValidation extends ConsumerStatefulWidget {
   const ScreenLoginValidation({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<ScreenLoginValidation> createState() => _ScreenLoginValidationState();
+  ConsumerState<ScreenLoginValidation> createState() =>
+      _ScreenLoginValidationState();
 }
 
-//////////////////////////////////////////////////////////////////
-// The actual STATE which is managed by the above widget.
-//////////////////////////////////////////////////////////////////
 class _ScreenLoginValidationState extends ConsumerState<ScreenLoginValidation> {
-  // The "instance variables" managed in this state
   var _isInit = true;
   late ProviderAuth _providerAuth;
   late ProviderUserProfile _providerUserProfile;
   bool isEmailVerified = false;
   Timer? timer;
-
-  ////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////
-  /// Helper Methods (for state object)
-  ////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////
-  // Initialize the app
-  ////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////
   // Gets the current state of the providers for consumption on
@@ -102,7 +78,9 @@ class _ScreenLoginValidationState extends ConsumerState<ScreenLoginValidation> {
     if (_providerAuth.isShowingSplash) {
       return const ScreenSplash();
     } else if (_providerAuth.authState == AuthState.UNKNOWN) {
-      return const WidgetAnnotatedLoading(loadingText: "Authenticating User...");
+      return const WidgetAnnotatedLoading(
+        loadingText: "Authenticating User...",
+      );
     } else if (_providerAuth.authState == AuthState.UN_AUTHENTICATED) {
       return const ScreenAuth();
     } else if (ENFORCE_EMAIL_VERIFICATION &&
@@ -129,9 +107,7 @@ class _ScreenLoginValidationState extends ConsumerState<ScreenLoginValidation> {
         );
       } else if (_providerUserProfile.accountCreationStep ==
           AccountCreationStep.ACC_STEP_ONBOARDING_PROFILE_CONTACT_INFO) {
-        return const ScreenProfileSetup(
-          isAuth: true,
-        );
+        return const ScreenProfileSetup(isAuth: true);
       } else {
         return const WidgetPrimaryScaffold();
       }
@@ -162,9 +138,11 @@ class _ScreenLoginValidationState extends ConsumerState<ScreenLoginValidation> {
         builder: (context, watch, child) {
           _providerAuth = ref.watch(providerAuth);
           _providerUserProfile = ref.watch(providerUserProfile);
-          bool isLoggedIn = _providerAuth.authState == AuthState.AUTHENTICATED &&
+          bool isLoggedIn =
+              _providerAuth.authState == AuthState.AUTHENTICATED &&
               _providerUserProfile.dataLoaded &&
-              _providerUserProfile.accountCreationStep == AccountCreationStep.ACC_STEP_ONBOARDING_COMPLETE;
+              _providerUserProfile.accountCreationStep ==
+                  AccountCreationStep.ACC_STEP_ONBOARDING_COMPLETE;
           return ScrollableBackground(
             child: _getWidgetToShow(),
             padding: isLoggedIn ? 0 : 20,

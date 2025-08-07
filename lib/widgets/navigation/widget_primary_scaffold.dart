@@ -1,17 +1,10 @@
 // -----------------------------------------------------------------------
 // Filename: widget_primary_scaffold.dart
-// Original Author: Dan Grissom
-// Creation Date: 5/27/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains the primary scaffold for the app.
 
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
 // Dart imports
 
 // Flutter external package imports
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +32,8 @@ class WidgetPrimaryScaffold extends ConsumerStatefulWidget {
 
   @override
   // ignore: library_private_types_in_public_api
-  ConsumerState<WidgetPrimaryScaffold> createState() => _WidgetPrimaryScaffoldState();
+  ConsumerState<WidgetPrimaryScaffold> createState() =>
+      _WidgetPrimaryScaffoldState();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -185,13 +179,13 @@ class _WidgetPrimaryScaffoldState extends ConsumerState<WidgetPrimaryScaffold> {
         items: [
           BottomNavigationBarItem(
             label: "Home",
-            activeIcon: Icon(FontAwesomeIcons.house),
-            icon: Icon(FontAwesomeIcons.house),
+            activeIcon: Icon(Icons.house),
+            icon: Icon(Icons.house),
           ),
           BottomNavigationBarItem(
             label: "Alternate",
-            activeIcon: Icon(FontAwesomeIcons.building),
-            icon: Icon(FontAwesomeIcons.building),
+            activeIcon: Icon(Icons.business),
+            icon: Icon(Icons.business),
           ),
         ],
       ),

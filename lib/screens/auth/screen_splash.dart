@@ -3,22 +3,14 @@
 // Description: This file checks contains the splash screen which is shown
 //              when the app is first opened.
 
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
 // Flutter external package imports
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 
 // App relative file imports
 import '../../providers/provider_auth.dart';
 import '../../main.dart';
 
-//////////////////////////////////////////////////////////////////
-// StateFUL widget which manages state. Simply initializes the
-// state object.
-//////////////////////////////////////////////////////////////////
 class ScreenSplash extends ConsumerStatefulWidget {
   // Constructor
   const ScreenSplash({super.key});
@@ -27,20 +19,11 @@ class ScreenSplash extends ConsumerStatefulWidget {
   ConsumerState<ScreenSplash> createState() => _ScreenSplashState();
 }
 
-//////////////////////////////////////////////////////////////////
-// The actual STATE which is managed by the above widget.
-//////////////////////////////////////////////////////////////////
 class _ScreenSplashState extends ConsumerState<ScreenSplash>
     with TickerProviderStateMixin {
   // The "instance variables" managed in this state
   var _isInit = true;
   late ProviderAuth _providerAuth;
-
-  ////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////
-  /// Helper Methods (for state object)
-  ////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////
   // Gets the current state of the providers for consumption on
   // this page
@@ -87,29 +70,12 @@ class _ScreenSplashState extends ConsumerState<ScreenSplash>
             ),
           ),
         ),
-        // const Padding(
-        //   padding: EdgeInsets.all(20),
-        //   child: Center(
-        //     child: CircularProgressIndicator(),
-        //   ),
-        // ),
         SizedBox(height: 20),
         Text(
           "My App",
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
         ),
-        // SizedBox(height: 20),
-        // Center(
-        //   child: Lottie.asset(
-        //     MediaQuery.of(context).platformBrightness == Brightness.light
-        //         // ? 'animations/loading_light_mode.json'
-        //         ? 'animations/loading_dots.json'
-        //         : 'animations/loading_dots.json',
-        //     animate: true,
-        //     width: MediaQuery.of(context).size.width * 0.5,
-        //   ),
-        // ),
       ],
     );
   }

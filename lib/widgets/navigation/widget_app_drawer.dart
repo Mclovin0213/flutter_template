@@ -2,9 +2,6 @@
 // Filename: widget_app_drawer.dart
 // Description: This file contains the primary scaffold for the app.
 
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
 // Flutter external package imports
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,7 +10,6 @@ import 'package:flutter/material.dart';
 // App relative file imports
 import '../../screens/settings/screen_profile_edit.dart';
 import '../../providers/provider_user_profile.dart';
-import '../../screens/settings/screen_settings.dart';
 import '../general/widget_profile_avatar.dart';
 import '../../providers/provider_auth.dart';
 import '../../main.dart';
@@ -64,15 +60,6 @@ class WidgetAppDrawer extends StatelessWidget {
                 onTap: () {},
               ),
               Divider(),
-              ListTile(
-                leading: Icon(Icons.spatial_audio_off),
-                title: Text('Voice Settings'),
-                onTap: () {
-                  // Close the drawer
-                  Navigator.of(context).pop();
-                  context.push(ScreenSettings.routeName, extra: false);
-                },
-              ),
               ListTile(
                 leading: Icon(Icons.person),
                 title: Text('Profile'),

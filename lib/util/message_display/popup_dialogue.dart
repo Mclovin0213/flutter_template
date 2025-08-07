@@ -1,14 +1,7 @@
-// -----------------------------------------------------------------------
 // Filename: popup_dialogue.dart
-// Original Author: Dan Grissom
-// Creation Date: 5/21/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains a wrapper around the Flutter alert
 //              dialogue library to display messages to the user.
 
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
 // Flutter external package imports
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
@@ -26,17 +19,18 @@ class PopupDialogue {
   // action. Returns TRUE if user selected YES; FALSE if user selected
   // NO.
   //////////////////////////////////////////////////////////////////
-  static Future<bool?> showConfirm(String question, BuildContext context, {String title = "Confirm"}) async {
+  static Future<bool?> showConfirm(
+    String question,
+    BuildContext context, {
+    String title = "Confirm",
+  }) async {
     bool confirmed = false;
     return popupStyle(
       context: context,
       title: title,
       content: Text(
         question,
-        style: const TextStyle(
-          fontWeight: FontWeight.normal,
-          fontSize: 18,
-        ),
+        style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
       ),
       actions: <Widget>[
         TextButton(
@@ -61,7 +55,11 @@ class PopupDialogue {
   // action. Returns TRUE if user selected YES; FALSE if user selected
   // NO.
   //////////////////////////////////////////////////////////////////
-  static Future<String?> showSave(String question, BuildContext context, {String title = "Confirm"}) async {
+  static Future<String?> showSave(
+    String question,
+    BuildContext context, {
+    String title = "Confirm",
+  }) async {
     TextEditingController _controller = TextEditingController();
     return showDialog<String>(
       context: context,
@@ -80,9 +78,7 @@ class PopupDialogue {
               ),
               TextField(
                 controller: _controller,
-                decoration: InputDecoration(
-                  hintText: 'Enter meeting name',
-                ),
+                decoration: InputDecoration(hintText: 'Enter meeting name'),
               ),
             ],
           ),
@@ -105,8 +101,12 @@ class PopupDialogue {
     );
   }
 
-  static Future<bool?> popupStyle(
-      {required Widget content, required String title, required List<Widget> actions, required BuildContext context}) {
+  static Future<bool?> popupStyle({
+    required Widget content,
+    required String title,
+    required List<Widget> actions,
+    required BuildContext context,
+  }) {
     return showDialog<bool>(
       context: context,
       barrierDismissible: true,
@@ -118,10 +118,7 @@ class PopupDialogue {
             children: [
               Row(
                 children: [
-                  Image.asset(
-                    "images/logo.png",
-                    height: 35,
-                  ),
+                  Image.asset("images/logo.png", height: 35),
                   Flexible(
                     child: Padding(
                       padding: const EdgeInsets.only(left: 8.0, top: 5),
@@ -132,9 +129,7 @@ class PopupDialogue {
               ),
               const Padding(
                 padding: EdgeInsets.only(bottom: 5.0),
-                child: Divider(
-                  thickness: 1,
-                ),
+                child: Divider(thickness: 1),
               ),
             ],
           ),
@@ -153,17 +148,18 @@ class PopupDialogue {
   // action. Returns TRUE if user selected YES; FALSE if user selected
   // NO.
   //////////////////////////////////////////////////////////////////
-  static Future<bool?> showOkay(String message, BuildContext context, {String title = "Message"}) async {
+  static Future<bool?> showOkay(
+    String message,
+    BuildContext context, {
+    String title = "Message",
+  }) async {
     bool confirmed = false;
     return popupStyle(
       context: context,
       title: title,
       content: Text(
         message,
-        style: const TextStyle(
-          fontWeight: FontWeight.normal,
-          fontSize: 18,
-        ),
+        style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
       ),
       actions: <Widget>[
         TextButton(
@@ -181,7 +177,11 @@ class PopupDialogue {
   // This method shows an "OK" alert dialog to confirm a user has seen
   // a message. Returns true if user clicks OK; false otherwise.
   //////////////////////////////////////////////////////////////////
-  static Future<bool?> showCustomOkay(String title, BuildContext context, {required Widget content}) async {
+  static Future<bool?> showCustomOkay(
+    String title,
+    BuildContext context, {
+    required Widget content,
+  }) async {
     bool confirmed = false;
     return popupStyle(
       context: context,
@@ -205,8 +205,16 @@ class PopupDialogue {
   // displays a snackbar with the appropriate message, color and
   // source icon.
   //////////////////////////////////////////////////////////////////
-  static showTextField(String title, String field1Label, BuildContext context, Function(String) callback,
-      {String? buttonText, String? description, Function(String)? onChanged, String? defaultValue}) {
+  static showTextField(
+    String title,
+    String field1Label,
+    BuildContext context,
+    Function(String) callback, {
+    String? buttonText,
+    String? description,
+    Function(String)? onChanged,
+    String? defaultValue,
+  }) {
     // Declare initial controls
     final field1TextController = TextEditingController();
     field1TextController.text = defaultValue ?? "";
@@ -218,10 +226,7 @@ class PopupDialogue {
         children: [
           if (description != null) Text(description),
           Padding(
-            padding: const EdgeInsets.only(
-              top: 0,
-              bottom: 15.0,
-            ),
+            padding: const EdgeInsets.only(top: 0, bottom: 15.0),
             child: TextFormField(
               autovalidateMode: AutovalidateMode.onUserInteraction,
               onChanged: (newValue) {
@@ -231,7 +236,10 @@ class PopupDialogue {
               },
               onTapOutside: (value) {},
               validator: (value) {
-                if (value == null || value.isEmpty || !value.contains('@') || !value.contains('.')) {
+                if (value == null ||
+                    value.isEmpty ||
+                    !value.contains('@') ||
+                    !value.contains('.')) {
                   return 'Please enter a valid email';
                 }
                 return null;

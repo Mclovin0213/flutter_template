@@ -1,23 +1,11 @@
-// -----------------------------------------------------------------------
 // Filename: password_strength_indicator.dart
-// Original Author: Dan Grissom
-// Creation Date: 5/22/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains the model for the user profile
 
-////////////////////////////////////////////////////////////////////////////////////////////
-// Imports
-////////////////////////////////////////////////////////////////////////////////////////////
 // Dart imports
 import 'package:flutter/material.dart';
 
 // App relative file imports
 import '../../theme/colors.dart';
-
-//////////////////////////////////////////////////////////////////
-// StateFUL widget which manages state. Simply initializes the
-// state object.
-//////////////////////////////////////////////////////////////////
 
 class WidgetPasswordStrengthIndicator extends StatefulWidget {
   WidgetPasswordStrengthIndicator({
@@ -30,7 +18,8 @@ class WidgetPasswordStrengthIndicator extends StatefulWidget {
   Color passwordColor;
   String passwordText;
   @override
-  State<WidgetPasswordStrengthIndicator> createState() => _WidgetPasswordStrengthIndicatorState();
+  State<WidgetPasswordStrengthIndicator> createState() =>
+      _WidgetPasswordStrengthIndicatorState();
 }
 
 double getPasswordStrength(String password) {
@@ -88,7 +77,8 @@ Color getPasswordStrengthColor(double passwordStrength) {
 //////////////////////////////////////////////////////////////////
 // The actual STATE which is managed by the above widget.
 //////////////////////////////////////////////////////////////////
-class _WidgetPasswordStrengthIndicatorState extends State<WidgetPasswordStrengthIndicator> {
+class _WidgetPasswordStrengthIndicatorState
+    extends State<WidgetPasswordStrengthIndicator> {
   @override
   Widget build(BuildContext context) {
     return Column(

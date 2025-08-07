@@ -1,14 +1,7 @@
-// -----------------------------------------------------------------------
 // Filename: util_file.dart
-// Original Author: Dan Grissom
-// Creation Date: 7/23/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains utility methods for file-related
 //              needs.
 
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
 // Dart imports
 import 'dart:typed_data';
 import 'dart:convert';

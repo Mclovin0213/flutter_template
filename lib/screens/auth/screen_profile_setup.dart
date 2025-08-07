@@ -1,8 +1,4 @@
-// -----------------------------------------------------------------------
 // Filename: screen_provider_setup.dart
-// Original Author: Dan Grissom
-// Creation Date: 5/27/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains the screen for setting up the user's
 //              profile.
 
@@ -84,12 +80,6 @@ class _ScreenProfileSetupState extends ConsumerState<ScreenProfileSetup> {
       super.didChangeDependencies();
     }
   }
-
-  ////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////
-  /// Helper Methods (for state object)
-  ////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////
   // Gets the current state of the providers for consumption on

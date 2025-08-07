@@ -1,14 +1,7 @@
-// -----------------------------------------------------------------------
 // Filename: screen_unverified_email.dart
-// Original Author: Dan Grissom
-// Creation Date: 5/21/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains the screen that checks that the user
 //              has verified their email address.
 
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
 // Dart imports
 import 'dart:async';
 
@@ -23,20 +16,14 @@ import '../../main.dart';
 import '../../util/message_display/snackbar.dart';
 import '../../providers/provider_auth.dart';
 
-//////////////////////////////////////////////////////////////////////////
-// StateFUL widget which manages state. Simply initializes the
-// state object.
-//////////////////////////////////////////////////////////////////////////
 class ScreenUnverifiedEmail extends ConsumerStatefulWidget {
   const ScreenUnverifiedEmail({super.key});
 
   @override
-  ConsumerState<ScreenUnverifiedEmail> createState() => _ScreenUnverifiedEmailState();
+  ConsumerState<ScreenUnverifiedEmail> createState() =>
+      _ScreenUnverifiedEmailState();
 }
 
-//////////////////////////////////////////////////////////////////////////
-// The actual STATE which is managed by the above widget.
-//////////////////////////////////////////////////////////////////////////
 class _ScreenUnverifiedEmailState extends ConsumerState<ScreenUnverifiedEmail> {
   // The "instance variables" managed in this state
   var _isInit = true;
@@ -89,12 +76,20 @@ class _ScreenUnverifiedEmailState extends ConsumerState<ScreenUnverifiedEmail> {
         await user!.sendEmailVerification();
 
         if (mounted) {
-          Snackbar.show(SnackbarDisplayType.SB_INFO, 'Verification email sent.', context);
+          Snackbar.show(
+            SnackbarDisplayType.SB_INFO,
+            'Verification email sent.',
+            context,
+          );
         }
       }
     } catch (err) {
       if (mounted) {
-        Snackbar.show(SnackbarDisplayType.SB_INFO, 'Please wait 30 seconds before trying again.', context);
+        Snackbar.show(
+          SnackbarDisplayType.SB_INFO,
+          'Please wait 30 seconds before trying again.',
+          context,
+        );
       }
     }
   }
@@ -153,7 +148,9 @@ class _ScreenUnverifiedEmailState extends ConsumerState<ScreenUnverifiedEmail> {
                         padding: const EdgeInsets.all(8.0),
                         child: Icon(
                           Icons.mark_email_unread_rounded,
-                          color: Theme.of(context).inputDecorationTheme.iconColor,
+                          color: Theme.of(
+                            context,
+                          ).inputDecorationTheme.iconColor,
                           size: MediaQuery.of(context).size.width * 0.15,
                         ),
                       ),
@@ -162,7 +159,10 @@ class _ScreenUnverifiedEmailState extends ConsumerState<ScreenUnverifiedEmail> {
                     Flexible(
                       child: Text(
                         "Check your email",
-                        style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     SizedBox(height: 10),
@@ -178,22 +178,34 @@ class _ScreenUnverifiedEmailState extends ConsumerState<ScreenUnverifiedEmail> {
                           Padding(
                             padding: const EdgeInsets.only(left: 10),
                             child: RichText(
-                              text: TextSpan(children: [
-                                TextSpan(
-                                  text:
-                                      "An e-mail with an account activation link has been sent to ${FirebaseAuth.instance.currentUser!.email}.\n\nNot you?",
-                                  style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodyLarge!.color),
-                                ),
-                                TextSpan(
-                                  text: ' Go Back',
-                                  style:
-                                      TextStyle(color: Theme.of(context).inputDecorationTheme.iconColor, fontSize: 16),
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () {
-                                      _providerAuth.clearAuthedUserDetailsAndSignout();
-                                    },
-                                ),
-                              ]),
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text:
+                                        "An e-mail with an account activation link has been sent to ${FirebaseAuth.instance.currentUser!.email}.\n\nNot you?",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge!.color,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: ' Go Back',
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).inputDecorationTheme.iconColor,
+                                      fontSize: 16,
+                                    ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () {
+                                        _providerAuth
+                                            .clearAuthedUserDetailsAndSignout();
+                                      },
+                                  ),
+                                ],
+                              ),
                               textAlign: TextAlign.left,
                             ),
                           ),
@@ -207,13 +219,21 @@ class _ScreenUnverifiedEmailState extends ConsumerState<ScreenUnverifiedEmail> {
                                   children: [
                                     TextSpan(
                                       text: '\nDid not recieve an email? ',
-                                      style:
-                                          TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodyLarge!.color),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge!.color,
+                                      ),
                                     ),
                                     TextSpan(
                                       text: 'Resend.',
                                       style: TextStyle(
-                                          color: Theme.of(context).inputDecorationTheme.iconColor, fontSize: 16),
+                                        color: Theme.of(
+                                          context,
+                                        ).inputDecorationTheme.iconColor,
+                                        fontSize: 16,
+                                      ),
                                       recognizer: TapGestureRecognizer()
                                         ..onTap = () async {
                                           await _resendEmail();

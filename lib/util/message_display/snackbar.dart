@@ -1,14 +1,7 @@
-// -----------------------------------------------------------------------
 // Filename: snackbar.dart
-// Original Author: Dan Grissom
-// Creation Date: 5/21/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains a wrapper around the Flutter snackbar
 //              library to display messages to the user.
 
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
 // Flutter external package imports
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +24,11 @@ class Snackbar {
   // displays a snackbar with the appropriate message, color and
   // source icon.
   //////////////////////////////////////////////////////////////////
-  static show(SnackbarDisplayType msgType, String message, BuildContext context) {
+  static show(
+    SnackbarDisplayType msgType,
+    String message,
+    BuildContext context,
+  ) {
     // Get proper color
     Color snackBarColor = CustomColors.statusSuccess;
     IconData snackBarIcon = CupertinoIcons.check_mark_circled;
@@ -56,10 +53,7 @@ class Snackbar {
             Icon(snackBarIcon, color: Colors.white),
             const SizedBox(width: 10),
             Flexible(
-              child: Text(
-                message,
-                style: const TextStyle(color: Colors.white),
-              ),
+              child: Text(message, style: const TextStyle(color: Colors.white)),
             ),
           ],
         ),

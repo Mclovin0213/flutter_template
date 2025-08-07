@@ -9,6 +9,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_template/firebase_options.dart';
+import 'package:flutter_template/util/file/util_file.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 
@@ -19,9 +20,7 @@ import 'widgets/navigation/widget_primary_scaffold.dart';
 import 'screens/auth/screen_login_validation.dart';
 import 'screens/settings/screen_profile_edit.dart';
 import 'providers/provider_user_profile.dart';
-import 'screens/settings/screen_settings.dart';
 import 'providers/provider_auth.dart';
-import 'util/file/util_file.dart';
 import 'theme/theme.dart';
 
 //////////////////////////////////////////////////////////////////////////
@@ -91,10 +90,6 @@ class _MyAppState extends State<MyApp> {
       GoRoute(
         path: ScreenLoginValidation.routeName,
         builder: (context, state) => const ScreenLoginValidation(),
-      ),
-      GoRoute(
-        path: ScreenSettings.routeName,
-        builder: (context, state) => ScreenSettings(),
       ),
       GoRoute(
         path: ScreenProfileEdit.routeName,

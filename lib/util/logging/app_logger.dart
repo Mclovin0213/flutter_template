@@ -1,15 +1,8 @@
-// -----------------------------------------------------------------------
 // Filename: app_logger.dart
-// Original Author: Dan Grissom
-// Creation Date: 5/18/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file contains a simple logger class that wraps
 //              the Flutter print method. This allows for easy logging
 //              to the console.
 
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
 // Flutter external package imports
 import 'package:logger/logger.dart';
 
