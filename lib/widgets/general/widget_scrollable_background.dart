@@ -1,25 +1,9 @@
-// -----------------------------------------------------------------------
 // Filename: scrollable_background.dart
-// Original Author: Dan Grissom
-// Creation Date: 5/21/2024
-// Copyright: (c) 2024 CSC322
 // Description: This file specifies a widget which provides a scrollable
 //              background image for a screen.
 
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
-// Flutter external package imports
-// import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 
-// App relative file imports
-// import '../../providers/device_preferences_provider.dart';
-
-//////////////////////////////////////////////////////////////////////////
-// StateFUL widget which manages state. Simply initializes the
-// state object.
-//////////////////////////////////////////////////////////////////////////
 // ignore: must_be_immutable
 class ScrollableBackground extends StatefulWidget {
   // Widget Parameters
@@ -40,9 +24,6 @@ class ScrollableBackground extends StatefulWidget {
   State<ScrollableBackground> createState() => _ScrollableBackgroundState();
 }
 
-//////////////////////////////////////////////////////////////////////////
-// The actual STATE which is managed by the above widget.
-//////////////////////////////////////////////////////////////////////////
 class _ScrollableBackgroundState extends State<ScrollableBackground> {
   // The "instance variables" managed in this state
   bool _isInit = true;
