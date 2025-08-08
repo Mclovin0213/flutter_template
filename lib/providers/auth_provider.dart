@@ -289,6 +289,63 @@ class Auth extends _$Auth {
     }
     return "";
   }
+
+  /// Sends a verification email to the current user.
+  /// Throws an exception if the user is not logged in or if Firebase fails.
+  Future<void> resendVerificationEmail() async {
+    final user = state.value; // Get user from the current state
+    if (user == null) {
+      throw Exception('No user is currently signed in.');
+    }
+    await user.sendEmailVerification();
+  }
+
+  Future<void> signUpWithPassword(String email, String password) async {
+    try {
+      // 1. Create the user in Firebase Auth
+      final userCredential = await ref
+          .read(userProfileRepositoryProvider)
+          .firebaseAuth
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      // 2. Send verification email (if enforced)
+      const bool ENFORCE_EMAIL_VERIFICATION = true;
+      if (ENFORCE_EMAIL_VERIFICATION) {
+        await userCredential.user?.sendEmailVerification();
+      }
+    } on FirebaseAuthException catch (e) {
+      String message;
+      if (e.code == 'weak-password') {
+        message = 'The password provided is too weak.';
+      } else if (e.code == 'email-already-in-use') {
+        message = 'An account already exists for that email.';
+      } else if (e.code == 'invalid-email') {
+        message = 'The email address is not valid.';
+      } else {
+        message = 'An error occurred. Please try again.';
+      }
+      throw Exception(message);
+    } catch (e) {
+      throw Exception("An unexpected error occurred during sign-up.");
+    }
+  }
+
+  /// Sends a password reset link to the given email address.
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await ref
+          .read(userProfileRepositoryProvider)
+          .firebaseAuth
+          .sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        // We don't want to reveal if an email exists or not for security.
+        // So we don't throw an error here. The UI will show a generic success message.
+        return;
+      }
+      throw Exception("An error occurred. Please try again.");
+    }
+  }
 }
 
 // --- User Profile Stream Provider ---

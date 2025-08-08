@@ -2,12 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_template/firebase_options.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_template/util/file/util_file.dart';
-import 'package:flutter_template/firebase_options.dart';
-import 'package:firebase_core/firebase_core.dart';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart'; // Keep GoRouter import for MaterialApp.router
 import 'providers/app_router_provider.dart'; // New router provider
 import 'theme/theme.dart';
 

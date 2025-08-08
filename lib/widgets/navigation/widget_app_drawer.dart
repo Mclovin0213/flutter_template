@@ -1,7 +1,3 @@
-// -----------------------------------------------------------------------
-// Filename: widget_app_drawer.dart
-// Description: This file contains the primary scaffold for the app.
-
 // Flutter external package imports
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,31 +5,28 @@ import 'package:flutter/material.dart';
 
 // App relative file imports
 import '../../screens/settings/screen_profile_edit.dart';
-import '../../providers/provider_user_profile.dart';
-import '../general/widget_profile_avatar.dart';
 import '../../providers/auth_provider.dart';
-import '../../main.dart';
+import '../general/widget_profile_avatar.dart';
 
 enum BottomNavSelection { HOME_SCREEN, ALTERNATE_SCREEN }
 
-//////////////////////////////////////////////////////////////////
-// StateLESS widget which only has data that is initialized when
-// widget is created (cannot update except when re-created).
-//////////////////////////////////////////////////////////////////
-class WidgetAppDrawer extends StatelessWidget {
-  ////////////////////////////////////////////////////////////////
-  // Primary Flutter method overriden which describes the layout
-  // and bindings for this widget.
-  ////////////////////////////////////////////////////////////////
+class WidgetAppDrawer extends ConsumerWidget {
+  const WidgetAppDrawer({super.key});
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userProfileAsync = ref.watch(userProfileProvider);
+    // Watch the profile image provider separately.
+    final userImageAsync = ref.watch(userProfileImageProvider);
+
     return Drawer(
-      child: Consumer(
-        builder: (BuildContext context, WidgetRef ref, Widget? child) {
-          final ProviderAuth _providerAuth = ref.watch(providerAuth);
-          final ProviderUserProfile _providerUserProfile = ref.watch(
-            providerUserProfile,
-          );
+      // Use the .when() method to build the UI based on the state of the user profile data.
+      child: userProfileAsync.when(
+        // Data is available, so build the full drawer UI.
+        data: (userProfile) {
+          // Get the actual ImageProvider? from its async value.
+          // .value returns the data if available, or null if in a loading/error state.
+          final userImage = userImageAsync.value;
 
           return Column(
             children: <Widget>[
@@ -43,43 +36,63 @@ class WidgetAppDrawer extends StatelessWidget {
                   children: [
                     ProfileAvatar(
                       radius: 15,
-                      userImage: _providerUserProfile.userImage,
-                      userWholeName: _providerUserProfile.wholeName,
+                      // Pass the fetched image and user's full name from the new models.
+                      userImage: userImage,
+                      userWholeName: userProfile.wholeName,
                     ),
                     const SizedBox(width: 10),
-                    Text('Welcome ${_providerUserProfile.firstName}'),
+                    // Use the first name from the UserProfile model.
+                    Text('Welcome ${userProfile.firstName}'),
                   ],
                 ),
-                // ,
                 automaticallyImplyLeading: false,
               ),
-              // Divider(),
               ListTile(
-                leading: Icon(Icons.home),
-                title: Text('Home'),
-                onTap: () {},
-              ),
-              Divider(),
-              ListTile(
-                leading: Icon(Icons.person),
-                title: Text('Profile'),
+                leading: const Icon(Icons.home),
+                title: const Text('Home'),
                 onTap: () {
-                  // Close the drawer
+                  // Just close the drawer. Assumes this drawer is on the home screen.
                   Navigator.of(context).pop();
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.person),
+                title: const Text('Profile'),
+                onTap: () {
+                  // Close the drawer before navigating to prevent UI issues.
+                  Navigator.of(context).pop();
+                  // Use go_router to navigate to the profile edit screen.
                   context.push(ScreenProfileEdit.routeName);
                 },
               ),
-              Divider(),
+              const Divider(),
               ListTile(
-                leading: Icon(Icons.exit_to_app),
-                title: Text('Logout'),
+                leading: const Icon(Icons.exit_to_app),
+                title: const Text('Logout'),
                 onTap: () {
-                  _providerAuth.clearAuthedUserDetailsAndSignout();
+                  // Call the signOut method from the Auth notifier.
+                  // The go_router's refresh listener will handle redirection automatically,
+                  // so there is no need to pop the navigator manually.
+                  ref.read(authProvider.notifier).signOut();
                 },
               ),
             ],
           );
         },
+        // Show a loading indicator while the user profile is being fetched.
+        loading: () => const Center(child: CircularProgressIndicator()),
+        // Show a user-friendly error message if fetching the profile failed.
+        error: (error, stackTrace) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              'Could not load profile.\nPlease try again later.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ),
+        ),
       ),
     );
   }

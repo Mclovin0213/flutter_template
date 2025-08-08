@@ -1,123 +1,115 @@
-// Filename: screen_provider_setup.dart
-// Description: This file contains the screen for setting up the user's
-//              profile.
-
-//////////////////////////////////////////////////////////////////////////
-// Imports
-//////////////////////////////////////////////////////////////////////////
 // Dart imports
 import 'dart:io';
 
 // Flutter external package imports
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
 // App relative file imports
 import '../../widgets/general/widget_profile_avatar.dart';
 import '../../util/message_display/snackbar.dart';
-import '../../util/logging/app_logger.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/user_profile.dart';
-import '../../theme/colors.dart';
-import '../../main.dart';
 
-//////////////////////////////////////////////////////////////////
-// StateFUL widget which manages state. Simply initializes the
-// state object.
-//////////////////////////////////////////////////////////////////
 class ScreenProfileSetup extends ConsumerStatefulWidget {
   static const routeName = '/profileSetup';
 
-  // Final variables passed in as parameters
   final bool isAuth;
 
-  const ScreenProfileSetup({super.key, required this.isAuth});
+  const ScreenProfileSetup({super.key, this.isAuth = false});
 
   @override
   ConsumerState<ScreenProfileSetup> createState() => _ScreenProfileSetupState();
 }
 
-//////////////////////////////////////////////////////////////////
-// The actual STATE which is managed by the above widget.
-//////////////////////////////////////////////////////////////////
 class _ScreenProfileSetupState extends ConsumerState<ScreenProfileSetup> {
-  // The "instance variables" managed in this state
-  var _isInit = true;
-  late ProviderUserProfile _providerUserProfile;
-  late ProviderAuth _providerAuth;
-  File? pickedImage;
-  bool editingPicture = false;
-
-  // Finals used in this widget
-  final _auth = FirebaseAuth.instance;
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
 
-  ////////////////////////////////////////////////////////////////
-  // Runs the following code once upon initialization
-  ////////////////////////////////////////////////////////////////
-  @override
-  void didChangeDependencies() {
-    // If first time running this code, update provider settings
-    if (_isInit) {
-      _init();
-
-      //Update text fields to contain current names if set
-      if (!widget.isAuth) {
-        _firstNameController.text = _providerUserProfile.firstName;
-        _lastNameController.text = _providerUserProfile.lastName;
-      }
-
-      // Now initialized; run super method
-      _isInit = false;
-      super.didChangeDependencies();
-    }
-  }
-
-  ////////////////////////////////////////////////////////////////
-  // Gets the current state of the providers for consumption on
-  // this page
-  ////////////////////////////////////////////////////////////////
-  _init() async {
-    // Get the providers
-    _providerUserProfile = ref.watch(providerUserProfile);
-    _providerAuth = ref.watch(providerAuth);
-  }
+  // Local UI state
+  File? _pickedImage;
+  bool _isLoading = false; // To show a loading indicator on submit
 
   @override
   void initState() {
     super.initState();
+    // Pre-fill form fields with existing data if available.
+    // ref.read is safe to use in initState.
+    final initialProfile = ref.read(userProfileProvider).valueOrNull;
+    if (initialProfile != null) {
+      _firstNameController.text = initialProfile.firstName;
+      _lastNameController.text = initialProfile.lastName;
+    }
   }
 
-  ////////////////////////////////////////////////////////////////
-  // Does basic validation and attempts to authenticate using the
-  // method called in from the parent screen/widget.
-  ////////////////////////////////////////////////////////////////
-  void _trySubmit() {
-    // Unfocus from any controls that may have focus to disengage the keyboard
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _trySubmit() async {
     FocusScope.of(context).unfocus();
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    _formKey.currentState!.save();
 
-    // If the form validates, save the data and then execute the callback function,
-    // which attempts to either login to existing account or signup for new account.
-    final isValid = _formKey.currentState!.validate();
-    if (isValid) {
-      _formKey.currentState!.save();
+    setState(() => _isLoading = true);
 
-      // Update profile information and write to database
-      _providerUserProfile.firstName = _firstNameController.text.trim();
-      _providerUserProfile.lastName = _lastNameController.text.trim();
-      _providerUserProfile.accountCreationStep =
-          AccountCreationStep.ACC_STEP_ONBOARDING_COMPLETE;
-      _providerUserProfile.writeUserProfileToDb();
+    try {
+      final user = ref.read(authProvider).valueOrNull;
+      if (user == null) {
+        throw Exception("User not authenticated.");
+      }
 
-      //If saving a snack-bar will appear and will pop the navigator
-      if (!widget.isAuth) {
+      // Get the current profile state. It will be null during initial setup.
+      final currentProfile = ref.read(userProfileProvider).valueOrNull;
+
+      // If an image was picked, upload it first.
+      if (_pickedImage != null) {
+        await ref
+            .read(userProfileManagerProvider)
+            .uploadNewUserProfileImage(_pickedImage!);
+        _pickedImage = null; // Clear after upload
+      }
+
+      // THIS IS YOUR CORRECTED LOGIC, FULLY INTEGRATED:
+      // It handles both the initial creation and subsequent updates.
+      final UserProfile profileToSave;
+
+      if (currentProfile == null) {
+        // Profile doesn't exist, so create a new one from scratch.
+        profileToSave = UserProfile(
+          uid: user.uid,
+          email: user.email ?? '',
+          emailLowercase: (user.email ?? '').toLowerCase(),
+          dateLastPasswordChange: DateTime.now(),
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          // Mark onboarding as complete right away
+          accountCreationStep: AccountCreationStep.ACC_STEP_ONBOARDING_COMPLETE,
+        );
+      } else {
+        // Profile exists, so create a copy with the updated fields.
+        profileToSave = currentProfile.copyWith(
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          accountCreationStep: AccountCreationStep.ACC_STEP_ONBOARDING_COMPLETE,
+        );
+      }
+
+      // Write the new or updated profile data to the database.
+      await ref
+          .read(userProfileManagerProvider)
+          .writeUserProfile(profileToSave);
+
+      if (mounted && !widget.isAuth) {
         Snackbar.show(
           SnackbarDisplayType.SB_SUCCESS,
           "Profile Updated",
@@ -125,359 +117,178 @@ class _ScreenProfileSetupState extends ConsumerState<ScreenProfileSetup> {
         );
         context.pop();
       }
-    }
-  }
-
-  ////////////////////////////////////////////////////////////////
-  // Upload profile image to Firebase Storage
-  ////////////////////////////////////////////////////////////////
-  Future uploadProfileImage(String? uid) async {
-    if (pickedImage != null) {
-      final file = File(pickedImage!.path);
-      await _providerUserProfile.uploadAndSetNewUserProfileImage(file);
-    }
-    setState(() {
-      editingPicture = false;
-    });
-    Snackbar.show(
-      SnackbarDisplayType.SB_SUCCESS,
-      'Profile Photo Saved Sucessfully',
-      context,
-    );
-    // Get the file that was chosen
-  }
-
-  ////////////////////////////////////////////////////////////////
-  // Pick an image from the camera roll
-  ////////////////////////////////////////////////////////////////
-  Future pickImage() async {
-    try {
-      final pickedImage = await ImagePicker().pickImage(
-        source: ImageSource.gallery,
-        maxHeight: 300,
-        maxWidth: 300,
-        imageQuality: 100,
-      );
-      if (pickedImage == null) return;
-
-      final imageTemporary = File(pickedImage.path);
-      setState(() => this.pickedImage = imageTemporary);
-      uploadProfileImage(_providerUserProfile.uid);
-    } on PlatformException catch (e) {
-      AppLogger.error('Failed to pick image: $e');
-    }
-  }
-
-  ////////////////////////////////////////////////////////////////
-  // Pick an image from the camera
-  ////////////////////////////////////////////////////////////////
-  Future takeImage() async {
-    try {
-      final pickedImage = await ImagePicker().pickImage(
-        source: ImageSource.camera,
-        imageQuality: 10,
-      );
-      if (pickedImage == null) return;
-      final imageTemporary = File(pickedImage.path);
-      setState(() => this.pickedImage = imageTemporary);
-      uploadProfileImage(_providerUserProfile.uid);
-    } on PlatformException catch (e) {
-      AppLogger.error('Failed to pick image: $e');
-    }
-  }
-
-  ////////////////////////////////////////////////////////////////
-  //Makes the buttons visible that allow you too take a picture or
-  // select from camera roll
-  ////////////////////////////////////////////////////////////////
-  void setEditVisibile() {
-    setState(() {
-      editingPicture = !editingPicture;
-      if (!editingPicture) {
-        pickedImage = null;
+      // If isAuth is true, the GoRouter will now see the complete profile and redirect automatically.
+    } catch (e) {
+      if (mounted) {
+        Snackbar.show(
+          SnackbarDisplayType.SB_ERROR,
+          "Failed to update profile: ${e.toString()}",
+          context,
+        );
       }
-    });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
-  ////////////////////////////////////////////////////////////////////////////////////////////
-  // Helper methods to create an edit icon
-  ////////////////////////////////////////////////////////////////////////////////////////////
-  Widget getEditIcon(Color color) => buildCircle(
-    color: Theme.of(context).inputDecorationTheme.iconColor!,
-    all: 5,
-    child: buildCircle(
-      color: color,
-      all: 8,
-      child: Icon(
-        editingPicture ? Icons.edit_off_rounded : Icons.edit_rounded,
-        size: 22,
-        color: Colors.white,
-      ),
-    ),
-  );
-  Widget buildCircle({
-    required Widget child,
-    required double all,
-    required Color color,
-  }) {
-    return Container(
-      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-      padding: EdgeInsets.all(all),
-      child: child,
+  /// Picks an image from the specified source (gallery or camera).
+  Future<void> _pickImage(ImageSource source) async {
+    final imagePicker = ImagePicker();
+    final pickedFile = await imagePicker.pickImage(
+      source: source,
+      maxWidth: 500,
+      maxHeight: 500,
+      imageQuality: 85,
     );
+
+    if (pickedFile != null) {
+      setState(() {
+        _pickedImage = File(pickedFile.path);
+      });
+    }
   }
 
-  ////////////////////////////////////////////////////////////////////////////////////////////
-  // Remove profile picture via provider
-  ////////////////////////////////////////////////////////////////////////////////////////////
-  Future removeProfileImage() async {
-    _providerUserProfile.removeUserProfileImage();
-    setState(() {
-      pickedImage = null;
-      editingPicture = false;
-    });
+  /// Removes the user's current profile image.
+  Future<void> _removeImage() async {
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(userProfileManagerProvider).removeUserProfileImage();
+      setState(() => _pickedImage = null); // Also clear any staged image
+      if (mounted) {
+        Snackbar.show(
+          SnackbarDisplayType.SB_SUCCESS,
+          "Profile photo removed.",
+          context,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Snackbar.show(
+          SnackbarDisplayType.SB_ERROR,
+          "Failed to remove photo: ${e.toString()}",
+          context,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
-  //////////////////////////////////////////////////////////////////////////
-  // Primary Flutter method overriden which describes the layout
-  // and bindings for this widget.
-  //////////////////////////////////////////////////////////////////////////
   @override
   Widget build(BuildContext context) {
+    // Watch providers for reactive UI updates
+    final userProfile = ref.watch(userProfileProvider).valueOrNull;
+    final userImage = ref.watch(userProfileImageProvider).valueOrNull;
+
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: Form(
-        key: _formKey,
-        child: AutofillGroup(
-          child: SingleChildScrollView(
-            child: Container(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height,
-              ),
+      appBar: widget.isAuth
+          ? null // No app bar during initial setup
+          : AppBar(title: const Text("Edit Profile")),
+      body: Stack(
+        children: [
+          Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
               child: Column(
-                mainAxisAlignment: widget.isAuth
-                    ? MainAxisAlignment.center
-                    : MainAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ///////////////////////////////////////////////////////////////////////
-                  // Logo
-                  ///////////////////////////////////////////////////////////////////////
-                  // Padding(
-                  //   padding: const EdgeInsets.symmetric(vertical: 5),
-                  //   child: Image.asset(
-                  //     'images/logo.png',
-                  //     height: MediaQuery.of(context).size.width * .5,
-                  //   ),
-                  // ),
-                  ///////////////////////////////////////////////////////////////////////
-                  // Profile Avatar
-                  ///////////////////////////////////////////////////////////////////////
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 30, top: 20),
-                      child: GestureDetector(
-                        onTap: () => setEditVisibile(),
-                        child: Stack(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(5.0),
-                              child: ProfileAvatar(
-                                radius: 100,
-                                userImage: pickedImage == null
-                                    ? _providerUserProfile.userImage
-                                    : Image.file(pickedImage!).image,
-                                userWholeName: _providerUserProfile.wholeName,
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 10,
-                              right: 10,
-                              child: getEditIcon(
-                                Theme.of(
-                                      context,
-                                    ).inputDecorationTheme.iconColor ??
-                                    CustomColors.statusInfo,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  const SizedBox(height: 20),
+                  ProfileAvatar(
+                    radius: 80,
+                    userImage: _pickedImage != null
+                        ? FileImage(_pickedImage!)
+                        : userImage,
+                    userWholeName: userProfile?.wholeName ?? "",
                   ),
-                  ///////////////////////////////////////////////////////////////////////
-                  // Profile Image Edit Buttons
-                  ///////////////////////////////////////////////////////////////////////
-                  if (editingPicture)
-                    Wrap(
-                      runSpacing: 10,
-                      spacing: 10,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(0.0),
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              backgroundColor: CustomColors.statusInfo,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.image_outlined,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                                SizedBox(width: 5),
-                                Text("Gallery", style: TextStyle(fontSize: 15)),
-                              ],
-                            ),
-                            // onPressed: () => pickImage(ImageSource.gallery, context),
-                            onPressed: () => pickImage(),
-                          ),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            backgroundColor: CustomColors.statusInfo,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Align(
-                                alignment: Alignment.center,
-                                child: Icon(
-                                  CupertinoIcons.photo_camera,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ),
-                              SizedBox(width: 5),
-                              Text("Capture", style: TextStyle(fontSize: 15)),
-                            ],
-                          ),
-                          onPressed: () => takeImage(),
-                          // onPressed: () => pickImage(ImageSource.camera, context),
-                        ),
-                        if (_providerUserProfile.userImage != null)
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              backgroundColor: CustomColors.statusInfo,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: Icon(
-                                    CupertinoIcons.delete,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                                SizedBox(width: 5),
-                                Text("Delete", style: TextStyle(fontSize: 15)),
-                              ],
-                            ),
-                            onPressed: () => removeProfileImage(),
-                            // onPressed: () => pickImage(ImageSource.camera, context),
-                          ),
-                      ],
-                    ),
-                  if (pickedImage != null && editingPicture)
-                    ElevatedButton(
-                      onPressed: () {
-                        if (pickedImage != null) {
-                          uploadProfileImage(_providerUserProfile.uid);
-                        }
-                        setState(() {
-                          editingPicture = false;
-                        });
-                      },
-                      child: const Text("Upload Image"),
-                    ),
-                  ///////////////////////////////////////////////////////////////////////
-                  // First Name Text Field
-                  ///////////////////////////////////////////////////////////////////////
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: TextFormField(
-                      controller: _firstNameController,
-                      autofillHints: const [AutofillHints.givenName],
-                      autocorrect: false,
-                      textCapitalization: TextCapitalization.sentences,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Please enter a first name.';
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {},
-                      keyboardType: TextInputType.name,
-                      decoration: InputDecoration(labelText: 'First Name'),
-                    ),
-                  ),
-                  ///////////////////////////////////////////////////////////////////////
-                  // Last Name Text Field
-                  ///////////////////////////////////////////////////////////////////////
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: TextFormField(
-                      controller: _lastNameController,
-                      autofillHints: const [AutofillHints.familyName],
-                      autocorrect: false,
-                      textCapitalization: TextCapitalization.sentences,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Please enter a last name.';
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {},
-                      keyboardType: TextInputType.name,
-                      decoration: InputDecoration(labelText: 'Last Name'),
-                    ),
-                  ),
-                  ///////////////////////////////////////////////////////////////////////
-                  /// Continue Button and Cancel Button
-                  ///////////////////////////////////////////////////////////////////////
-                  Column(
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 0),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            _trySubmit();
-                          },
-                          child: widget.isAuth
-                              ? const Text("Submit")
-                              : const Text("Update"),
-                        ),
+                      _buildImageButton(
+                        icon: Icons.photo_library,
+                        label: 'Gallery',
+                        onPressed: () => _pickImage(ImageSource.gallery),
                       ),
-                      if (widget.isAuth)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 0),
-                          child: TextButton(
-                            onPressed: () => _providerAuth
-                                .clearAuthedUserDetailsAndSignout(),
-                            child: const Text("Log out"),
-                          ),
+                      _buildImageButton(
+                        icon: CupertinoIcons.photo_camera,
+                        label: 'Camera',
+                        onPressed: () => _pickImage(ImageSource.camera),
+                      ),
+                      if (userImage != null || _pickedImage != null)
+                        _buildImageButton(
+                          icon: CupertinoIcons.delete,
+                          label: 'Remove',
+                          onPressed: _removeImage,
+                          color: Colors.red,
                         ),
                     ],
                   ),
+                  const SizedBox(height: 32),
+                  TextFormField(
+                    controller: _firstNameController,
+                    autofillHints: const [AutofillHints.givenName],
+                    textCapitalization: TextCapitalization.words,
+                    validator: (value) =>
+                        value!.isEmpty ? 'Please enter a first name.' : null,
+                    decoration: const InputDecoration(labelText: 'First Name'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _lastNameController,
+                    autofillHints: const [AutofillHints.familyName],
+                    textCapitalization: TextCapitalization.words,
+                    validator: (value) =>
+                        value!.isEmpty ? 'Please enter a last name.' : null,
+                    decoration: const InputDecoration(labelText: 'Last Name'),
+                  ),
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _trySubmit,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                    child: Text(widget.isAuth ? "Continue" : "Update Profile"),
+                  ),
+                  if (widget.isAuth)
+                    TextButton(
+                      onPressed: () =>
+                          ref.read(authProvider.notifier).signOut(),
+                      child: const Text("Sign Out"),
+                    ),
                 ],
               ),
             ),
           ),
-        ),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    Color? color,
+  }) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 20),
+      label: Text(label),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
     );
   }

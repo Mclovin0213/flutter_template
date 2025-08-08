@@ -1,82 +1,40 @@
 // -----------------------------------------------------------------------
 // Filename: screen_splash.dart
-// Description: This file checks contains the splash screen which is shown
-//              when the app is first opened.
+// Description: This file contains the splash screen UI which is shown
+//              while the application is initializing.
 
-// Flutter external package imports
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 
-// App relative file imports
-import '../../providers/auth_provider.dart';
-import '../../main.dart';
-
-class ScreenSplash extends ConsumerStatefulWidget {
-  // Constructor
+/// A simple, stateless widget that displays the splash screen UI.
+/// The decision of *when* to show this screen is handled by the application's
+/// router (GoRouter) based on the authentication state. This widget has no
+/// logic and is purely for presentation.
+class ScreenSplash extends StatelessWidget {
   const ScreenSplash({super.key});
 
   @override
-  ConsumerState<ScreenSplash> createState() => _ScreenSplashState();
-}
-
-class _ScreenSplashState extends ConsumerState<ScreenSplash>
-    with TickerProviderStateMixin {
-  // The "instance variables" managed in this state
-  var _isInit = true;
-  late ProviderAuth _providerAuth;
-  ////////////////////////////////////////////////////////////////
-  // Gets the current state of the providers for consumption on
-  // this page
-  ////////////////////////////////////////////////////////////////
-  _init() async {
-    // Load providers
-    _providerAuth = ref.read(providerAuth);
-
-    // Set splash screen flag
-    _providerAuth.isShowingSplash = true;
-  }
-
-  ////////////////////////////////////////////////////////////////
-  // Runs the following code once upon initialization
-  ////////////////////////////////////////////////////////////////
-  @override
-  void didChangeDependencies() {
-    // If first time running this code, update provider settings
-    if (_isInit) {
-      _init();
-    }
-
-    // Now initialized; run super method
-    _isInit = false;
-    super.didChangeDependencies();
-  }
-
-  ////////////////////////////////////////////////////////////////
-  // Primary Flutter method overriden which describes the layout
-  // and bindings for this widget.
-  ////////////////////////////////////////////////////////////////
-  @override
   Widget build(BuildContext context) {
-    // Return the widget for this control
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(0),
-          child: Center(
-            child: Image.asset(
-              "images/logo.png",
-              width: MediaQuery.of(context).size.width * 0.8,
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              child: Image.asset(
+                "images/logo.png",
+                width: MediaQuery.of(context).size.width * 0.8,
+              ),
             ),
-          ),
+            const SizedBox(height: 20),
+            const Text(
+              "My App",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
-        SizedBox(height: 20),
-        Text(
-          "My App",
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-        ),
-      ],
+      ),
     );
   }
 }

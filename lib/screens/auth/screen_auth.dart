@@ -1,27 +1,17 @@
-// Filename: provider_auth.dart
-// Description: This file contains the screen for authenticating users
-//              (login, account creation).
+// Filename: screen_auth.dart
+// Description: This file contains the screen for authenticating users (login, account creation).
 
 // Flutter external package imports
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 
 // App relative file imports
-import '../../util/message_display/popup_dialogue.dart';
 import '../../widgets/auth/widget_password_strength_indicator.dart';
-import '../../providers/provider_user_profile.dart';
-import '../../util/message_display/snackbar.dart';
-import '../../util/logging/app_logger.dart';
 import '../../providers/auth_provider.dart';
-import '../../models/user_profile.dart';
-import '../../theme/colors.dart';
-import '../../main.dart';
+import '../../util/message_display/snackbar.dart';
 
 class ScreenAuth extends ConsumerStatefulWidget {
   static const routeName = '/auth';
-
   const ScreenAuth({super.key});
 
   @override
@@ -29,591 +19,250 @@ class ScreenAuth extends ConsumerStatefulWidget {
 }
 
 class _ScreenAuthState extends ConsumerState<ScreenAuth> {
-  // The "instance variables" managed in this state
-  bool _signInMode = true;
-  bool _passwordVisible = false;
-  var _isInit = true;
-  late ProviderUserProfile _providerUserProfile;
-  late ProviderAuth _providerAuth;
-  String _strengthText = "";
-  Color _strengthColor = CustomColors.statusWarning;
-  double _passwordStrength = 0;
-
-  // Finals used in this widget
-  final _auth = FirebaseAuth.instance;
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  @override
-  void didChangeDependencies() {
-    // If first time running this code, update provider settings
-    if (_isInit) {
-      _init();
-
-      // Now initialized; run super method
-      _isInit = false;
-      super.didChangeDependencies();
-    }
-  }
-
-  ////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////
-  /// Helper Methods (for state object)
-  ////////////////////////////////////////////////////////////////
-  ////////////////////////////////////////////////////////////////
-
-  ////////////////////////////////////////////////////////////////
-  // Gets the current state of the providers for consumption on
-  // this page
-  ////////////////////////////////////////////////////////////////
-  _init() async {
-    _providerUserProfile = ref.watch(providerUserProfile);
-    _providerAuth = ref.watch(providerAuth);
-  }
+  // Local UI State
+  bool _signInMode = true;
+  bool _passwordVisible = false;
+  bool _isLoading = false;
+  double _passwordStrength = 0;
 
   @override
-  void initState() {
-    super.initState();
-    _passwordVisible = false;
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 
-  ////////////////////////////////////////////////////////////////
-  // Attempts to either login to existing account or signup for
-  // new account.
-  ////////////////////////////////////////////////////////////////
-  void _submitAuthForm(
-    String email,
-    String password,
-    bool isLogin,
-    BuildContext ctx,
-  ) async {
-    try {
-      // Update screen to indicate loading spinner
-      setState(() {});
-
-      // If in "login mode", attempt to login with email/password...
-      User? user = _auth.currentUser;
-      if (isLogin) {
-        // Attempt login
-        String errorMessage = (await _providerAuth.signinWithPassword(
-          email,
-          password,
-        )).trim();
-
-        // If there was an error, display it...otherwise load the profile
-        if (errorMessage.isNotEmpty) {
-          //Snackbar.show(SnackbarDisplayType.SB_ERROR, errorMessage, false, context);
-          setState(() {});
-        } else {
-          await _providerAuth.loadAuthedUserDetailsUponSignin();
-        }
-
-        // }
-      } else {
-        // ...otherwise, attempt to create a new account
-        // Attempt to create a new account
-        await _auth.createUserWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-
-        // Send verification e-mail and create initial user profile
-        try {
-          if (ENFORCE_EMAIL_VERIFICATION) {
-            await FirebaseAuth.instance.currentUser?.sendEmailVerification();
-          }
-          _providerUserProfile.email = user?.email ?? email;
-          _providerUserProfile.accountCreationStep =
-              AccountCreationStep.ACC_STEP_ONBOARDING_PROFILE_CONTACT_INFO;
-          await _providerUserProfile.writeUserProfileToDb();
-          _providerAuth.isSigningIn = false;
-        } catch (e) {
-          AppLogger.warning(
-            "Issue with sending email verification or writing to user profile.  email: $e",
-          );
-        }
-
-        // ...and send verification email
-        if (user != null && !user.emailVerified) {
-          await user.sendEmailVerification();
-
-          // ...and display to user as "Snack bar" pop-up at bottom of screen
-          if (mounted) {
-            Snackbar.show(
-              SnackbarDisplayType.SB_INFO,
-              'Check ${user.email} for verification link.',
-              context,
-            );
-          }
-        }
-      }
-    } on FirebaseAuthException catch (err) {
-      // If error, dis-engage loading screen and display to user
-      setState(() {});
-
-      // If error occurs, gather error message...
-      var message = 'An error occurred, please check your credentials!';
-      if (err.message != null) message = err.message!;
-      if (mounted) {
-        Snackbar.show(SnackbarDisplayType.SB_ERROR, message, ctx);
-      }
-    }
-  }
-
-  ////////////////////////////////////////////////////////////////
-  // Does basic validation and attempts to authenticate using the
-  // method called in from the parent screen/widget.
-  ////////////////////////////////////////////////////////////////
-  void _trySubmit() {
-    // Unfocus from any controls that may have focus to disengage the keyboard
+  /// Tries to submit the form for either sign-in or sign-up.
+  Future<void> _trySubmit() async {
     FocusScope.of(context).unfocus();
+    final isValid = _formKey.currentState?.validate() ?? false;
 
-    // If the form validates, save the data and then execute the callback function,
-    // which attempts to either login to existing account or signup for new account.
-    final isValid =
-        _formKey.currentState!.validate() && _passwordStrength >= .6;
-    if (isValid) {
-      _formKey.currentState!.save();
-      _submitAuthForm(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
-        _signInMode,
-        context,
-      );
-    } else if (_passwordStrength < .6) {
+    if (!isValid) return;
+
+    // Additional check for password strength in sign-up mode
+    if (!_signInMode && _passwordStrength < 0.6) {
       Snackbar.show(
         SnackbarDisplayType.SB_ERROR,
         "Please improve your password strength.",
         context,
       );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+
+      if (_signInMode) {
+        await ref
+            .read(authProvider.notifier)
+            .signInWithPassword(email, password);
+      } else {
+        await ref
+            .read(authProvider.notifier)
+            .signUpWithPassword(email, password);
+      }
+      // On success, GoRouter will automatically navigate away. No need for any navigation code here.
+    } catch (e) {
+      if (mounted) {
+        Snackbar.show(SnackbarDisplayType.SB_ERROR, e.toString(), context);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
-  /* ---------------------------- validatePassword ---------------------------- */
-  /// Does a check on the password inputted in the Password form.
-  /// [value] is the value inputted by the user.
-  /// Returns String if there was an error. Otherwise returns null.
-  /// For this form a valid password must do all of the following:
-  /// - Be 6 characters in length
-  /// - Contain 1 letter
-  /// - Contain 1 digit
-  /// - Contain 1 symbol
-  String? validatePasssword(String? value) {
-    /// The password response message. Error messages are added to the end of it.
-    String passwordResponse = "Password must have: ";
-
-    /// Has the inputted password tripped an invalidation flag?
-    bool invalidPassword = false;
-
-    /// How many invalidation flags have been tripped?
-    int errorCount = 0;
-
-    /// Check if there was a password that was entered.
-    if (value == null || value.isEmpty) {
-      return 'Enter a password.';
-
-      /// Validate the password
-    } else {
-      /// Make sure the password is at least 6 characters
-      if (value.length < 6) {
-        passwordResponse += "6 characters";
-        invalidPassword = true;
-        errorCount += 1;
-      }
-
-      /// Make sure the password contains a letter.
-      if (!(RegExp(r"(?=.*[a-z])").hasMatch(value) ||
-          RegExp(r"(?=.*[A-Z])").hasMatch(value))) {
-        if (invalidPassword) {
-          passwordResponse += ", letter";
-        } else {
-          passwordResponse += "letter";
-          invalidPassword = true;
-        }
-        errorCount += 1;
-      }
-
-      /// Make sure the password contains a number.
-      if (!(RegExp(r"(?=.*\d)").hasMatch(value))) {
-        if (invalidPassword) {
-          passwordResponse += ", digit";
-        } else {
-          passwordResponse += "digit";
-          invalidPassword = true;
-        }
-        errorCount += 1;
-      }
-
-      /// Make sure the password contains a special character.
-      if (!(RegExp(r"(?=.*\W)").hasMatch(value))) {
-        if (invalidPassword) {
-          passwordResponse += ", symbol";
-        } else {
-          passwordResponse += "symbol";
-          invalidPassword = true;
-        }
-        errorCount += 1;
-      }
-
-      /// Was the password marked as invalid?
-      if (invalidPassword) {
-        /// Punctuate the end of the error with a period.
-        passwordResponse += ".";
-
-        /// The comma checks to see if there was enough errors to add a comma
-        /// to the response. (This would be 3)
-        if (passwordResponse.contains(", ")) {
-          /// Grab the index of the last occuring comma
-          int lastIndex = passwordResponse.lastIndexOf(", ");
-
-          /// Replace it with either "and" or ", and" for correct grammar
-          String endingPhrase = (errorCount > 2) ? ", and" : " and";
-          passwordResponse =
-              passwordResponse.substring(0, lastIndex) +
-              endingPhrase +
-              passwordResponse.substring(
-                lastIndex + 1,
-                passwordResponse.length,
-              );
-        }
-
-        return passwordResponse;
-      }
-      return null;
-    }
-  }
-
-  /* ------------------------- validateConfirmPassword ------------------------ */
-  /// Ensures that the passwords put into confirm password and password fields match.
-  /// [value] is the value inputted by the user.
-  /// Returns String if there was an error. Otherwise returns null.
-  String? validateConfirmPassword(String? value) {
-    if (_signInMode) {
-      return null;
-    }
-
-    /// Check if there was a password typed into the field
-    if ((value == null || value.isEmpty)) {
-      return 'Confirm your password.';
-    }
-    /// Check to make sure the passwords match
-    else {
-      if (_confirmPasswordController.text != _passwordController.text) {
-        return "Passwords do not match.";
-      }
-      return null;
-    }
-  }
-
-  Widget animatedWidget({required Widget child, double? height}) {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      child: Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [child],
+  /// Shows a dialog to get the user's email for a password reset.
+  void _showPasswordResetDialog() {
+    final resetEmailController = TextEditingController(
+      text: _emailController.text,
+    );
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Reset Password"),
+        content: TextField(
+          controller: resetEmailController,
+          autofillHints: const [AutofillHints.email],
+          keyboardType: TextInputType.emailAddress,
+          decoration: const InputDecoration(labelText: "Email Address"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop(); // Close the dialog
+              _sendPasswordReset(resetEmailController.text.trim());
+            },
+            child: const Text("Send Reset Email"),
+          ),
+        ],
       ),
     );
   }
 
-  void showPopup() {
-    PopupDialogue.showTextField(
-      "Reset Password",
-      "Email",
-      context,
-      (email) {
-        resetPassword(email);
-      },
-      buttonText: "Reset Email",
-      defaultValue: _emailController.text,
-    );
-  }
+  /// Calls the provider to send a password reset email.
+  Future<void> _sendPasswordReset(String email) async {
+    if (email.isEmpty) return;
 
-  final snackBar = const SnackBar(
-    content: Text(
-      'If you have an account, a Reset Password Email will be sent to you. Remeber to check your spam folder.',
-    ),
-  );
-  Future resetPassword(String email) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
+    setState(() => _isLoading = true);
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email.trim());
+      await ref.read(authProvider.notifier).sendPasswordResetEmail(email);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'If you have an account, a Reset Password Email will be sent to you. Remember to check your spam folder.',
-            ),
-          ),
+        Snackbar.show(
+          SnackbarDisplayType.SB_INFO,
+          "If an account exists, a password reset email has been sent.",
+          context,
         );
       }
-      // if (mounted) context.router.popUntilRoot(); // DTG - Does this work in go router?
-      if (mounted) context.go('/');
-    } on FirebaseAuthException catch (e) {
-      AppLogger.error("Failed to send a reset password email: $e");
+    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("Enter a valid email")));
+        Snackbar.show(SnackbarDisplayType.SB_ERROR, e.toString(), context);
       }
-
-      if (mounted) context.pop();
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: Form(
-        key: _formKey,
-        child: AutofillGroup(
-          child: SingleChildScrollView(
-            child: Container(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ///////////////////////////////////////////////////////////////////////
-                  // Logo
-                  ///////////////////////////////////////////////////////////////////////
-                  Padding(
-                    padding: const EdgeInsets.all(0),
-                    child: Center(
-                      child: Image.asset(
-                        "images/logo.png",
-                        width: MediaQuery.of(context).size.width * 0.8,
+      body: Stack(
+        children: [
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Image.asset("images/logo.png", height: 150),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "My App",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                  Text(
-                    "My App",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  ///////////////////////////////////////////////////////////////////////
-                  /// Email Text Field
-                  ///////////////////////////////////////////////////////////////////////
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: TextFormField(
+                    const SizedBox(height: 32),
+                    TextFormField(
                       controller: _emailController,
                       autofillHints: const [AutofillHints.username],
-                      autocorrect: false,
-                      textCapitalization: TextCapitalization.none,
-                      validator: (value) {
-                        if (value!.isEmpty ||
-                            !value.contains('@') ||
-                            !value.contains('.')) {
-                          return 'Please enter a valid email address.';
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {},
                       keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(labelText: 'Email'),
+                      decoration: const InputDecoration(labelText: 'Email'),
+                      validator: (value) =>
+                          (value?.isEmpty ?? true) || !value!.contains('@')
+                          ? 'Please enter a valid email.'
+                          : null,
                     ),
-                  ),
-                  ///////////////////////////////////////////////////////////////////////
-                  /// Password Text Field
-                  ///////////////////////////////////////////////////////////////////////
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: TextFormField(
-                      onFieldSubmitted: (value) {
-                        if (_signInMode) {
-                          _trySubmit();
-                        }
-                      },
-                      enableInteractiveSelection: true,
+                    const SizedBox(height: 16),
+                    TextFormField(
                       controller: _passwordController,
+                      obscureText: !_passwordVisible,
                       autofillHints: const [AutofillHints.password],
-                      validator: (value) {
-                        if (validatePasssword(value) != null) {
-                          return validatePasssword(value);
-                        }
-                        return null;
-                      },
-                      onChanged: (context) {
-                        _passwordStrength = getPasswordStrength(
-                          _passwordController.text,
-                        );
-                        _strengthText = getPasswordStrengthText(
-                          _passwordStrength,
-                        );
-                        _strengthColor = getPasswordStrengthColor(
-                          _passwordStrength,
-                        );
-                        setState(() {});
-                      },
                       decoration: InputDecoration(
                         labelText: 'Password',
                         suffixIcon: IconButton(
-                          splashColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
                           icon: Icon(
-                            // Based on passwordVisible state choose the icon
                             _passwordVisible
                                 ? Icons.visibility
                                 : Icons.visibility_off,
-                            color: Theme.of(
-                              context,
-                            ).inputDecorationTheme.iconColor,
                           ),
-                          onPressed: () {
-                            // Update the state i.e. toogle the state of passwordVisible variable
-                            setState(() {
-                              _passwordVisible = !_passwordVisible;
-                            });
-                          },
+                          onPressed: () => setState(
+                            () => _passwordVisible = !_passwordVisible,
+                          ),
                         ),
                       ),
-                      onSaved: (value) {},
-                      obscureText: !_passwordVisible,
+                      validator: (value) => (value?.isEmpty ?? true)
+                          ? 'Please enter a password.'
+                          : null,
+                      onChanged: (value) {
+                        if (!_signInMode) {
+                          setState(() {
+                            _passwordStrength = getPasswordStrength(value);
+                          });
+                        }
+                      },
                     ),
-                  ),
-                  ///////////////////////////////////////////////////////////////////////
-                  /// Forgot Password Button
-                  ///////////////////////////////////////////////////////////////////////
-                  if (_signInMode)
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 0),
-                      child: TextButton(
-                        onPressed: () {
-                          showPopup();
-                        },
-                        child: Align(
-                          alignment: Alignment.centerRight,
+                    if (!_signInMode) ...[
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _confirmPasswordController,
+                        obscureText: !_passwordVisible,
+                        decoration: const InputDecoration(
+                          labelText: 'Confirm Password',
+                        ),
+                        validator: (value) => _passwordController.text != value
+                            ? 'Passwords do not match.'
+                            : null,
+                      ),
+                      const SizedBox(height: 8),
+                      if (_passwordController.text.isNotEmpty)
+                        WidgetPasswordStrengthIndicator(
+                          passwordStrength: _passwordStrength,
+                          passwordText: getPasswordStrengthText(
+                            _passwordStrength,
+                          ),
+                          passwordColor: getPasswordStrengthColor(
+                            _passwordStrength,
+                          ),
+                        ),
+                    ],
+                    if (_signInMode)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _showPasswordResetDialog,
                           child: const Text("Forgot Password?"),
                         ),
                       ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : _trySubmit,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: Text(_signInMode ? "Sign In" : "Create Account"),
                     ),
-                  ///////////////////////////////////////////////////////////////////////
-                  /// Password Strength Indicator
-                  ///////////////////////////////////////////////////////////////////////
-                  if (!_signInMode && _passwordController.text.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5),
-                      child: WidgetPasswordStrengthIndicator(
-                        passwordStrength: _passwordStrength,
-                        passwordText: _strengthText,
-                        passwordColor: _strengthColor,
+                    TextButton(
+                      onPressed: () =>
+                          setState(() => _signInMode = !_signInMode),
+                      child: Text(
+                        _signInMode
+                            ? "Create an account"
+                            : "I already have an account",
                       ),
                     ),
-
-                  ///////////////////////////////////////////////////////////////////////
-                  /// Confirm Password Text Field
-                  ///////////////////////////////////////////////////////////////////////
-                  if (!_signInMode)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5),
-                      child: TextFormField(
-                        onFieldSubmitted: (value) {
-                          _trySubmit();
-                        },
-                        controller: _confirmPasswordController,
-                        autocorrect: false,
-                        textCapitalization: TextCapitalization.none,
-                        enableSuggestions: false,
-                        validator: (value) {
-                          if (validateConfirmPassword(value) != null) {
-                            return validateConfirmPassword(value);
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          labelText: 'Confirm Password',
-                          suffixIcon: IconButton(
-                            splashColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            icon: Icon(
-                              // Based on passwordVisible state choose the icon
-                              _passwordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Theme.of(
-                                context,
-                              ).inputDecorationTheme.iconColor,
-                            ),
-                            onPressed: () {
-                              // Update the state i.e. toogle the state of passwordVisible variable
-                              setState(() {
-                                _passwordVisible = !_passwordVisible;
-                              });
-                            },
-                          ),
-                        ),
-                        obscureText: !_passwordVisible,
-                      ),
-                    ),
-                  ///////////////////////////////////////////////////////////////////////
-                  /// Sign in Button and Create Account Toggle Button
-                  ///////////////////////////////////////////////////////////////////////
-                  if (_signInMode)
-                    Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              _trySubmit();
-                            },
-                            child: const Text(
-                              "Sign In",
-                              style: TextStyle(fontSize: 23),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 0),
-                          child: TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _signInMode = false;
-                              });
-                            },
-                            child: const Text("Create an account"),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ///////////////////////////////////////////////////////////////////////
-                  /// Create Account Button and Already Have Account Toggle Button
-                  ///////////////////////////////////////////////////////////////////////
-                  if (!_signInMode)
-                    Column(
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            _trySubmit();
-                          },
-                          child: const Text("Create Account"),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              _signInMode = true;
-                            });
-                          },
-                          child: const Text("Use existing account"),
-                        ),
-                      ],
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+        ],
       ),
     );
   }
