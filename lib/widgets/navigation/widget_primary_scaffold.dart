@@ -14,7 +14,6 @@ import '../../screens/general/screen_alternate.dart';
 import '../../screens/general/screen_home.dart';
 import 'widget_primary_app_bar.dart';
 import 'widget_app_drawer.dart';
-import '../../main.dart';
 
 //////////////////////////////////////////////////////////////////////////
 // Localized provider for the current tab index

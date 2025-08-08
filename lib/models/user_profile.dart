@@ -1,10 +1,6 @@
 // Filename: user_profile.dart
 // Description: This file contains the model for the user profile
 
-// Dart imports
-import 'dart:convert';
-import 'dart:io';
-
 // Flutter external package imports
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -31,13 +27,6 @@ class UserProfile {
   String _firstName = "";
   String _lastName = "";
   String _email = "";
-  double _pitch = 1.0;
-  double _speed = 0.5;
-  Map<String, dynamic> _iosVoice = {'name': "Karen", 'locale': "en-GB"};
-  Map<String, dynamic> _androidVoice = {
-    'name': "en-gb-x-gba-local",
-    'locale': "en-GB",
-  };
   PermissionLevel _permissionLevel = PermissionLevel.PRODUCTION;
   int _accountCreationTime = 0;
   DateTime _dateLastPasswordChange = DateTime.now().add(
@@ -45,8 +34,6 @@ class UserProfile {
   );
   AccountCreationStep _accountCreationStep =
       AccountCreationStep.ACC_STEP_ONBOARDING_PROFILE_CONTACT_INFO;
-  bool _voicePromptsEnabled = true;
-  bool _realTimeAssistantEnabled = true;
 
   ////////////////////////////////////////////////////////////////////////
   // CONSTRUCTORS
@@ -57,16 +44,10 @@ class UserProfile {
     this._firstName,
     this._lastName,
     this._email,
-    this._speed,
-    this._pitch,
-    this._iosVoice,
-    this._androidVoice,
     this._permissionLevel,
     this._accountCreationTime,
     this._dateLastPasswordChange,
     this._accountCreationStep,
-    this._voicePromptsEnabled,
-    this._realTimeAssistantEnabled,
   );
 
   // Named Constructor
@@ -75,16 +56,10 @@ class UserProfile {
     _lastName = "";
     _firstName = "";
     _email = "";
-    _pitch = 1.0;
-    _speed = 0.5;
-    _iosVoice = {'name': "Karen", 'locale': "en-GB"};
-    _androidVoice = {'name': "en-gb-x-gba-local", 'locale': "en-GB"};
     _permissionLevel = PermissionLevel.PRODUCTION;
     _accountCreationTime = 0;
     _accountCreationStep =
         AccountCreationStep.ACC_STEP_ONBOARDING_PROFILE_CONTACT_INFO;
-    _voicePromptsEnabled = true;
-    _realTimeAssistantEnabled = false;
   }
 
   ////////////////////////////////////////////////////////////////////////
@@ -98,16 +73,6 @@ class UserProfile {
     firstName = jsonObject["first_name"] ?? "";
     lastName = jsonObject["last_name"] ?? "";
     email = jsonObject["email"] ?? "";
-    if (jsonObject["ttsSettings"] != null) {
-      pitch = jsonObject['ttsSettings']["pitch"] ?? 1.0;
-      speed = jsonObject['ttsSettings']['speed'] ?? 0.5;
-      _iosVoice =
-          jsonObject['ttsSettings']['selectedVoices']['ios_voice'] ??
-          {'name': "Karen", 'locale': "en-GB"};
-      _androidVoice =
-          jsonObject['ttsSettings']['selectedVoices']['android_voice'] ??
-          {'name': "en-gb-x-gba-local", 'locale': "en-GB"};
-    }
     uid = firebaseUid;
     permissionLevel = _getPermissionLevelFromString(
       jsonObject["permission_level"] ??
@@ -122,9 +87,6 @@ class UserProfile {
             AccountCreationStep.ACC_STEP_ONBOARDING_PROFILE_CONTACT_INFO,
           ),
     );
-    _voicePromptsEnabled = jsonObject["voice_prompts_enabled"] ?? true;
-    _realTimeAssistantEnabled =
-        jsonObject["real_time_assistant_enabled"] ?? false;
   }
 
   ////////////////////////////////////////////////////////////////////////
@@ -134,23 +96,12 @@ class UserProfile {
   set firstName(String value) => _firstName = value;
   set lastName(String value) => _lastName = value;
   set email(String value) => _email = value;
-  set pitch(double value) => _pitch = value;
-  set speed(double value) => _speed = value;
-  set voice(Map<String, dynamic> value) {
-    if (Platform.isIOS) {
-      _iosVoice = value;
-    } else if (Platform.isAndroid) {
-      _androidVoice = value;
-    }
-  }
 
   set permissionLevel(PermissionLevel value) => _permissionLevel = value;
   set accountCreationTime(int value) => _accountCreationTime = value;
   set dateLastPasswordChange(DateTime value) => _dateLastPasswordChange = value;
   set accountCreationStep(AccountCreationStep value) =>
       _accountCreationStep = value;
-  set voicePromptsEnabled(bool value) => _voicePromptsEnabled = value;
-  set realTimeAssistantEnabled(bool value) => _realTimeAssistantEnabled = value;
 
   ////////////////////////////////////////////////////////////////////////
   // GETTERS
@@ -159,23 +110,11 @@ class UserProfile {
   String get firstName => _firstName;
   String get lastName => _lastName;
   String get email => _email;
-  double get pitch => _pitch;
-  double get speed => _speed;
-  Map<String, dynamic> get voice {
-    if (Platform.isIOS) {
-      return _iosVoice;
-    } else if (Platform.isAndroid) {
-      return _androidVoice;
-    }
-    return {}; // Return an empty map if the platform is neither iOS nor Android
-  }
 
   PermissionLevel get permissionLevel => _permissionLevel;
   int get accountCreationTime => _accountCreationTime;
   DateTime get dateLastPasswordChange => _dateLastPasswordChange;
   AccountCreationStep get accountCreationStep => _accountCreationStep;
-  bool get voicePromptsEnabled => _voicePromptsEnabled;
-  bool get realTimeAssistantEnabled => _realTimeAssistantEnabled;
 
   ////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////
@@ -248,16 +187,6 @@ class UserProfile {
     jsonObject["first_name"] = firstName;
     jsonObject["last_name"] = lastName;
     jsonObject["email"] = email;
-    // Create ttsSettings object
-    Map<String, dynamic> ttsSettings = {
-      'pitch': pitch,
-      'speed': speed,
-      'selectedVoices': {
-        'ios_voice': _iosVoice,
-        'android_voice': _androidVoice,
-      },
-    };
-    jsonObject["ttsSettings"] = ttsSettings;
     jsonObject["email_lowercase"] = email
         .toLowerCase(); // Added for bf_manage_share_request GCF
     jsonObject["permission_level"] = _getStringFromPermissionLevel(
@@ -268,8 +197,6 @@ class UserProfile {
     jsonObject["account_creation_step"] = getStringFromStep(
       accountCreationStep,
     );
-    jsonObject["voice_prompts_enabled"] = voicePromptsEnabled;
-    jsonObject["real_time_assistant_enabled"] = realTimeAssistantEnabled;
 
     // Return the JSON object
     return jsonObject;
