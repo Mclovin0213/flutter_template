@@ -6,7 +6,7 @@ part of 'auth_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$userProfileHash() => r'c5b74a24d162df958f69f9c287d7ac75dc6e7719';
+String _$userProfileHash() => r'91e5e5c86e4e671e3b54d12e85950c6364d7cc5e';
 
 /// Provides a stream of the current authenticated user's [UserProfile] object.
 /// It watches the `authProvider` to react to user login/logout events.
@@ -25,7 +25,7 @@ final userProfileProvider = AutoDisposeStreamProvider<UserProfile>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef UserProfileRef = AutoDisposeStreamProviderRef<UserProfile>;
-String _$userProfileImageHash() => r'890f248543cbac8e93c57a03afbcc95377d4cb6d';
+String _$userProfileImageHash() => r'b460f682ff6a4745dab046bc05b8b16b069cba5f';
 
 /// Provides the profile image for the current authenticated user as a [Future<ImageProvider?>].
 /// It depends on the `userProfileProvider` to get the user's UID.
@@ -47,7 +47,7 @@ final userProfileImageProvider =
 // ignore: unused_element
 typedef UserProfileImageRef = AutoDisposeFutureProviderRef<ImageProvider?>;
 String _$userProfileManagerHash() =>
-    r'22b9e82984d2f71f9b347b813417c3894f5e8fd9';
+    r'c864640463c9ebecf8e109fa9db8838755ea0315';
 
 /// Provides methods for performing actions related to the user profile,
 /// such as writing data, uploading/removing images, and deleting account data.
