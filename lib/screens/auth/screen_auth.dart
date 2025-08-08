@@ -14,7 +14,7 @@ import '../../widgets/auth/widget_password_strength_indicator.dart';
 import '../../providers/provider_user_profile.dart';
 import '../../util/message_display/snackbar.dart';
 import '../../util/logging/app_logger.dart';
-import '../../providers/provider_auth.dart';
+import '../../providers/auth_provider.dart';
 import '../../models/user_profile.dart';
 import '../../theme/colors.dart';
 import '../../main.dart';

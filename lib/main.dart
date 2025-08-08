@@ -1,11 +1,3 @@
-// -----------------------------------------------------------------------
-// Filename: main.dart
-// Description: This file is the main entry point for the app and
-//              initializes the app and the router.
-
-// Dart imports
-
-// Flutter external package imports
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_template/firebase_options.dart';
@@ -13,29 +5,13 @@ import 'package:flutter_template/util/file/util_file.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 
-// App relative file imports
 import 'screens/general/screen_alternate.dart';
 import 'screens/general/screen_home.dart';
 import 'widgets/navigation/widget_primary_scaffold.dart';
 import 'screens/auth/screen_login_validation.dart';
 import 'screens/settings/screen_profile_edit.dart';
-import 'providers/provider_user_profile.dart';
-import 'providers/provider_auth.dart';
+import 'providers/auth_provider.dart';
 import 'theme/theme.dart';
-
-//////////////////////////////////////////////////////////////////////////
-// Providers
-//////////////////////////////////////////////////////////////////////////
-// Create a ProviderContainer to hold the providers
-final ProviderContainer providerContainer = ProviderContainer();
-
-// Create providers
-final providerUserProfile = ChangeNotifierProvider<ProviderUserProfile>(
-  (ref) => ProviderUserProfile(),
-);
-final providerAuth = ChangeNotifierProvider<ProviderAuth>(
-  (ref) => ProviderAuth(),
-);
 
 //////////////////////////////////////////////////////////////////////////
 // MAIN entry point to start app.
@@ -43,27 +19,10 @@ final providerAuth = ChangeNotifierProvider<ProviderAuth>(
 Future<void> main() async {
   // Initialize widgets and firebase
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize Firebase with the default options
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialize the app directory
-  await UtilFile.init();
-
-  // Get references to providers that will be needed in other providers
-  final ProviderUserProfile userProfileProvider = providerContainer.read(
-    providerUserProfile,
-  );
-  final ProviderAuth authProvider = providerContainer.read(providerAuth);
-
-  // Initialize providers
-  await userProfileProvider.initProviders(authProvider);
-  authProvider.initProviders(userProfileProvider);
-
   // Run the app
-  runApp(
-    UncontrolledProviderScope(container: providerContainer, child: MyApp()),
-  );
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 //////////////////////////////////////////////////////////////////////////

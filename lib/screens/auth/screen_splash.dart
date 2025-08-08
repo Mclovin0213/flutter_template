@@ -8,7 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 
 // App relative file imports
-import '../../providers/provider_auth.dart';
+import '../../providers/auth_provider.dart';
 import '../../main.dart';
 
 class ScreenSplash extends ConsumerStatefulWidget {

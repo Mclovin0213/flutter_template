@@ -13,7 +13,7 @@ import '../../widgets/general/widget_scrollable_background.dart';
 import '../../widgets/navigation/widget_primary_scaffold.dart';
 import '../../widgets/general/widget_annotated_loading.dart';
 import '../../providers/provider_user_profile.dart';
-import '../../providers/provider_auth.dart';
+import '../../providers/auth_provider.dart';
 import '../../models/user_profile.dart';
 import 'screen_unverified_email.dart';
 import 'screen_profile_setup.dart';

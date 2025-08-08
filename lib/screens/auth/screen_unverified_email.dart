@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 // App relative file imports
 import '../../main.dart';
 import '../../util/message_display/snackbar.dart';
-import '../../providers/provider_auth.dart';
+import '../../providers/auth_provider.dart';
 
 class ScreenUnverifiedEmail extends ConsumerStatefulWidget {
   const ScreenUnverifiedEmail({super.key});
