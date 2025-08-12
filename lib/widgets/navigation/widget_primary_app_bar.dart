@@ -7,6 +7,7 @@
 // Flutter external package imports
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_template/providers/auth_provider.dart';
 
 // App relative file imports
 import '../../util/message_display/snackbar.dart';
@@ -77,12 +78,8 @@ class _PrimaryAppBar extends ConsumerState<WidgetPrimaryAppBar> {
       elevation: 0,
       actions: [
         IconButton(
-          icon: const Icon(Icons.add, color: CustomColors.statusError),
-          onPressed: () => Snackbar.show(
-            SnackbarDisplayType.SB_INFO,
-            'You clicked the action button in the app bar!',
-            context,
-          ),
+          icon: const Icon(Icons.logout, color: CustomColors.statusError),
+          onPressed: () => {ref.read(authProvider.notifier).signOut()},
         ),
         if (widget.actionButtons != null)
           ...widget.actionButtons!.map((e) {

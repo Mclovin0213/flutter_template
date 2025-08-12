@@ -1,189 +1,83 @@
-// -----------------------------------------------------------------------
-// Filename: widget_primary_scaffold.dart
-// Description: This file contains the primary scaffold for the app.
+// lib/widgets/navigation/widget_primary_scaffold.dart
 
-// Dart imports
-
-// Flutter external package imports
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-// App relative file imports
 import '../../screens/general/screen_alternate.dart';
 import '../../screens/general/screen_home.dart';
 import 'widget_primary_app_bar.dart';
-import 'widget_app_drawer.dart';
 
-//////////////////////////////////////////////////////////////////////////
-// Localized provider for the current tab index
-//////////////////////////////////////////////////////////////////////////
-final providerPrimaryBottomNavTabIndex = StateProvider<int>((ref) => 0);
+/// This is now a simple ConsumerWidget. It doesn't need to be stateful because
+/// GoRouter now manages the state of which page is visible.
+class WidgetPrimaryScaffold extends ConsumerWidget {
+  /// The widget to display in the body of the Scaffold.
+  /// GoRouter will pass the screen here based on the current route.
+  final Widget child;
 
-//////////////////////////////////////////////////////////////////////////
-// StateFUL widget which manages state. Simply initializes the
-// state object.
-//////////////////////////////////////////////////////////////////////////
-class WidgetPrimaryScaffold extends ConsumerStatefulWidget {
-  static const routeName = "/home";
+  const WidgetPrimaryScaffold({Key? key, required this.child})
+    : super(key: key);
 
-  const WidgetPrimaryScaffold({Key? key}) : super(key: key);
-
-  @override
-  // ignore: library_private_types_in_public_api
-  ConsumerState<WidgetPrimaryScaffold> createState() =>
-      _WidgetPrimaryScaffoldState();
-}
-
-//////////////////////////////////////////////////////////////////////////
-// The actual STATE which is managed by the above widget.
-//////////////////////////////////////////////////////////////////////////
-class _WidgetPrimaryScaffoldState extends ConsumerState<WidgetPrimaryScaffold> {
-  // The "instance variables" managed in this state
-  var _isInit = true;
-  // int _currentTabIndex = 0;
-  late Image shareImageFocus;
-  late Image shareImageLightUnfocused;
-  late Image shareImageDarkUnfocused;
-  CupertinoTabController controller = CupertinoTabController();
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  ////////////////////////////////////////////////////////////////////////
-  // Gets the current state of the providers for consumption on
-  // this page
-  ////////////////////////////////////////////////////////////////////////
-  _init() async {
-    // Get providers
-  }
-
-  ////////////////////////////////////////////////////////////////
-  // Runs the following code once upon initialization
-  ////////////////////////////////////////////////////////////////
-  @override
-  void didChangeDependencies() {
-    // If first time running this code, update provider settings
-    if (_isInit) {
-      _init();
+  /// Helper method to determine the selected index of the BottomNavigationBar
+  /// based on the current route path.
+  int _calculateSelectedIndex(BuildContext context) {
+    final String location = GoRouter.of(context).routerDelegate.state.uri.path;
+    if (location.startsWith(ScreenHome.routeName)) {
+      return 0;
     }
-
-    // Now initialized; run super method
-    _isInit = false;
-    super.didChangeDependencies();
+    if (location.startsWith(ScreenAlternate.routeName)) {
+      return 1;
+    }
+    // Default to home if the route is not recognized.
+    return 0;
   }
 
-  ////////////////////////////////////////////////////////////////
-  // Describes menu options for the chat screen
-  ////////////////////////////////////////////////////////////////
-  List<PopupMenuEntry<String>> _getMenu() {
-    return <PopupMenuEntry<String>>[
-      //////////////////////////////////////////////////////////
-      // Edit-style options
-      //////////////////////////////////////////////////////////
-      PopupMenuItem(
-        child: Row(
-          children: [
-            Icon(Icons.share, size: 25),
-            SizedBox(width: 10),
-            Text("Share"),
-          ],
-        ),
-        value: "Share",
-      ),
-      PopupMenuItem(
-        child: Row(
-          children: [
-            Icon(Icons.edit, size: 25),
-            SizedBox(width: 10),
-            Text("Rename"),
-          ],
-        ),
-        value: "Rename",
-      ),
-      PopupMenuItem(
-        child: Row(
-          children: [
-            Icon(Icons.delete, size: 25),
-            SizedBox(width: 10),
-            Text("Delete"),
-          ],
-        ),
-        value: "Delete",
-      ),
-    ];
+  /// Helper method to determine the AppBar title based on the current route.
+  String _getAppBarTitle(BuildContext context) {
+    final String location = GoRouter.of(context).routerDelegate.state.uri.path;
+    if (location.startsWith(ScreenHome.routeName)) {
+      return "Home";
+    }
+    if (location.startsWith(ScreenAlternate.routeName)) {
+      return "Alternate";
+    }
+    return "My App";
   }
 
-  ////////////////////////////////////////////////////////////////
-  // Takes in the current tab index and returns the appropriate
-  // screen to display.
-  ////////////////////////////////////////////////////////////////
-  Widget _getScreenToDisplay(int currentTabIndex) {
-    if (currentTabIndex == BottomNavSelection.HOME_SCREEN.index)
-      return ScreenHome();
-    else if (currentTabIndex == BottomNavSelection.ALTERNATE_SCREEN.index)
-      return ScreenAlternate();
-    else
-      return ScreenHome();
-  }
-
-  ////////////////////////////////////////////////////////////////
-  // Takes in the current tab index and returns the appropriate
-  // app bar widget to display.
-  ////////////////////////////////////////////////////////////////
-  Widget _getAppBarTitle(int currentTabIndex) {
-    if (currentTabIndex == BottomNavSelection.HOME_SCREEN.index)
-      return Text("Home");
-    else
-      return Text("Alternate");
-  }
-
-  ////////////////////////////////////////////////////////////////
-  // Takes in the current tab index and returns the appropriate
-  // actions to display in the app bar (right side).
-  ////////////////////////////////////////////////////////////////
-  List<Widget>? _getAppBarActions(int currentTabIndex) {
-    // Initialize the actions
-    List<Widget> actions = [];
-
-    // If not chat tab, return null (no actions)
-    return actions.isEmpty ? null : actions;
-  }
-
-  ////////////////////////////////////////////////////////////////
-  // Primary Flutter method overriden which describes the layout
-  // and bindings for this widget.
-  ////////////////////////////////////////////////////////////////
   @override
-  Widget build(BuildContext context) {
-    // Get providers
-    final currentTabIndex = ref.watch(providerPrimaryBottomNavTabIndex);
+  Widget build(BuildContext context, WidgetRef ref) {
+    // We determine the selected index and title directly from the GoRouter state.
+    final selectedIndex = _calculateSelectedIndex(context);
+    final appBarTitle = _getAppBarTitle(context);
 
-    // Return the scaffold
     return Scaffold(
       appBar: WidgetPrimaryAppBar(
-        // Add a plus icon followed by the 3-dots vertical icon on the right
-        actionButtons: _getAppBarActions(currentTabIndex),
-        title: _getAppBarTitle(currentTabIndex),
+        // The title is now determined by the current route.
+        title: Text(appBarTitle),
+        // Action buttons can also be determined by the route if needed.
+        actionButtons: null,
       ),
-      drawer: WidgetAppDrawer(),
-      body: _getScreenToDisplay(currentTabIndex),
+      // The body is now the child widget passed by the ShellRoute.
+      // We no longer need the _getScreenToDisplay method.
+      body: child,
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentTabIndex,
+        currentIndex: selectedIndex,
         onTap: (index) {
-          ref.read(providerPrimaryBottomNavTabIndex.notifier).state = index;
+          // When a tab is tapped, we use GoRouter to navigate, not a local StateProvider.
+          // This keeps the URL and the UI in sync.
+          switch (index) {
+            case 0:
+              context.go(ScreenHome.routeName);
+              break;
+            case 1:
+              context.go(ScreenAlternate.routeName);
+              break;
+          }
         },
-        items: [
-          BottomNavigationBarItem(
-            label: "Home",
-            activeIcon: Icon(Icons.house),
-            icon: Icon(Icons.house),
-          ),
+        items: const [
+          BottomNavigationBarItem(label: "Home", icon: Icon(Icons.house)),
           BottomNavigationBarItem(
             label: "Alternate",
-            activeIcon: Icon(Icons.business),
             icon: Icon(Icons.business),
           ),
         ],

@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 /// router (GoRouter) based on the authentication state. This widget has no
 /// logic and is purely for presentation.
 class ScreenSplash extends StatelessWidget {
+  static const routeName = '/splash';
+
   const ScreenSplash({super.key});
 
   @override

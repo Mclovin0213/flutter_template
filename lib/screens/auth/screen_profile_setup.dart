@@ -14,13 +14,14 @@ import '../../widgets/general/widget_profile_avatar.dart';
 import '../../util/message_display/snackbar.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/user_profile.dart';
+import '../../util/logging/app_logger.dart';
 
 class ScreenProfileSetup extends ConsumerStatefulWidget {
   static const routeName = '/profileSetup';
 
   final bool isAuth;
 
-  const ScreenProfileSetup({super.key, this.isAuth = false});
+  const ScreenProfileSetup({super.key, this.isAuth = true});
 
   @override
   ConsumerState<ScreenProfileSetup> createState() => _ScreenProfileSetupState();
@@ -55,29 +56,37 @@ class _ScreenProfileSetupState extends ConsumerState<ScreenProfileSetup> {
   }
 
   Future<void> _trySubmit() async {
+    AppLogger.debug("Attempting to submit profile setup form.");
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) {
+      AppLogger.debug("Form validation failed.");
       return;
     }
     _formKey.currentState!.save();
 
     setState(() => _isLoading = true);
+    AppLogger.debug("Loading state set to true.");
 
     try {
       final user = ref.read(authProvider).valueOrNull;
       if (user == null) {
+        AppLogger.error("User not authenticated during profile setup submit.");
         throw Exception("User not authenticated.");
       }
+      AppLogger.debug("User authenticated: ${user.uid}");
 
       // Get the current profile state. It will be null during initial setup.
       final currentProfile = ref.read(userProfileProvider).valueOrNull;
+      AppLogger.debug("Current profile: ${currentProfile?.toJson()}");
 
       // If an image was picked, upload it first.
       if (_pickedImage != null) {
+        AppLogger.debug("Uploading new profile image.");
         await ref
             .read(userProfileManagerProvider)
             .uploadNewUserProfileImage(_pickedImage!);
         _pickedImage = null; // Clear after upload
+        AppLogger.debug("Profile image uploaded.");
       }
 
       // THIS IS YOUR CORRECTED LOGIC, FULLY INTEGRATED:
@@ -86,6 +95,7 @@ class _ScreenProfileSetupState extends ConsumerState<ScreenProfileSetup> {
 
       if (currentProfile == null) {
         // Profile doesn't exist, so create a new one from scratch.
+        AppLogger.debug("Creating new user profile.");
         profileToSave = UserProfile(
           uid: user.uid,
           email: user.email ?? '',
@@ -98,6 +108,7 @@ class _ScreenProfileSetupState extends ConsumerState<ScreenProfileSetup> {
         );
       } else {
         // Profile exists, so create a copy with the updated fields.
+        AppLogger.debug("Updating existing user profile.");
         profileToSave = currentProfile.copyWith(
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
@@ -106,20 +117,30 @@ class _ScreenProfileSetupState extends ConsumerState<ScreenProfileSetup> {
       }
 
       // Write the new or updated profile data to the database.
+      AppLogger.debug(
+        "Writing user profile to database: ${profileToSave.toJson()}",
+      );
       await ref
           .read(userProfileManagerProvider)
           .writeUserProfile(profileToSave);
+      AppLogger.debug("User profile written successfully.");
 
       if (mounted && !widget.isAuth) {
+        AppLogger.debug("Profile updated, popping context.");
         Snackbar.show(
           SnackbarDisplayType.SB_SUCCESS,
           "Profile Updated",
           context,
         );
         context.pop();
+      } else if (mounted && widget.isAuth) {
+        AppLogger.debug(
+          "Profile setup complete for new user. Not popping context.",
+        );
+        // For initial auth flow, we don't pop, the router redirect handles navigation.
       }
-      // If isAuth is true, the GoRouter will now see the complete profile and redirect automatically.
     } catch (e) {
+      AppLogger.error("Failed to update profile: ${e.toString()}");
       if (mounted) {
         Snackbar.show(
           SnackbarDisplayType.SB_ERROR,
@@ -130,6 +151,7 @@ class _ScreenProfileSetupState extends ConsumerState<ScreenProfileSetup> {
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
+        AppLogger.debug("Loading state set to false.");
       }
     }
   }
