@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 // App relative file imports
 import '../../screens/settings/screen_profile_edit.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/user_profile_provider.dart'; // Import the new user profile provider
 import '../general/widget_profile_avatar.dart';
 
 enum BottomNavSelection { HOME_SCREEN, ALTERNATE_SCREEN }

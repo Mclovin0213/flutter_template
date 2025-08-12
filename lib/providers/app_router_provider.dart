@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_template/models/user_profile.dart';
+import 'package:flutter_template/providers/user_profile_provider.dart';
 import 'package:flutter_template/screens/auth/screen_auth.dart';
 import 'package:flutter_template/screens/auth/screen_profile_setup.dart';
 import 'package:flutter_template/screens/auth/screen_unverified_email.dart';
