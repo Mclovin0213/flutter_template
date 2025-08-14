@@ -65,4 +65,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'flutter-template-a6e29.firebasestorage.app',
     iosBundleId: 'com.avellaneda.flutterTemplate',
   );
+
 }

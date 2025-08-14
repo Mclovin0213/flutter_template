@@ -10,12 +10,9 @@ import 'theme/theme.dart';
 // MAIN entry point to start app.
 //////////////////////////////////////////////////////////////////////////
 Future<void> main() async {
-  // Initialize widgets and firebase
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // UtilFile.init() could also be moved into a provider if it's async
 
-  // Run the app
   runApp(const ProviderScope(child: MyApp()));
 }
 

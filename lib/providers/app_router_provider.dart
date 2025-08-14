@@ -17,17 +17,13 @@ import '../screens/general/screen_home.dart';
 import '../widgets/navigation/widget_primary_scaffold.dart';
 import 'auth_provider.dart';
 
-part 'app_router_provider.g.dart'; // Generated file for Riverpod
+part 'app_router_provider.g.dart';
 
-// A new provider for our router
 @riverpod
 GoRouter goRouter(Ref ref) {
-  // Watch the single source of truth for routing.
   final routingState = ref.watch(routingStateProvider);
 
   return GoRouter(
-    // The refreshListenable isn't even strictly necessary anymore, since
-    // watching the provider will handle all rebuilds.
     refreshListenable: GoRouterRefreshStream(
       ref.watch(authProvider.notifier).build(),
     ),
@@ -61,20 +57,17 @@ GoRouter goRouter(Ref ref) {
 
       // --- AUTHENTICATED APP ROUTES (NESTED IN A SHELL) ---
       ShellRoute(
-        // The builder for the shell, which wraps all child routes
         builder: (context, state, child) {
           return WidgetPrimaryScaffold(child: child);
         },
         routes: [
-          // The default screen for the authenticated section
           GoRoute(
-            path: ScreenHome.routeName, // e.g., "/home"
+            path: ScreenHome.routeName,
             builder: (BuildContext context, GoRouterState state) =>
                 ScreenHome(),
           ),
-          // Another screen inside the shell
           GoRoute(
-            path: ScreenAlternate.routeName, // e.g., "/alternate"
+            path: ScreenAlternate.routeName,
             builder: (BuildContext context, GoRouterState state) =>
                 ScreenAlternate(),
           ),
@@ -86,7 +79,7 @@ GoRouter goRouter(Ref ref) {
 
       switch (routingState) {
         case RoutingState.unknown:
-          return ScreenSplash.routeName; // Show a splash/loading screen
+          return ScreenSplash.routeName;
 
         case RoutingState.unauthenticated:
           final authFlowRoutes = [
@@ -112,17 +105,15 @@ GoRouter goRouter(Ref ref) {
             ScreenSplash.routeName,
             ScreenUnverifiedEmail.routeName,
           ];
-          // If we are authenticated but still on a login flow page, go home.
           if (loginFlowRoutes.contains(location)) {
             return ScreenHome.routeName;
           }
-          return null; // Otherwise, stay where you are.
+          return null;
       }
     },
   );
 }
 
-// Helper class for GoRouter refreshListenable (no changes needed here)
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
     notifyListeners();

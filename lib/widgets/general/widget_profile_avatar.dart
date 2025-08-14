@@ -15,7 +15,6 @@ class ProfileAvatar extends StatefulWidget {
     this.isInAppBar = false,
   });
 
-  //radius of CircleAvatar
   final double radius;
   final double initialsSize;
   final ImageProvider? userImage;

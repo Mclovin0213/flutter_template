@@ -3,21 +3,17 @@
 // Description: This file contains the repository for user profiles,
 //              abstracting data access from Firebase Firestore and Storage.
 
-// Dart imports
 import 'dart:io';
 import 'dart:typed_data';
 
-// Flutter external package imports
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// Riverpod annotation import
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-// App relative file imports
 import '../models/user_profile.dart';
 import '../util/logging/app_logger.dart';
 

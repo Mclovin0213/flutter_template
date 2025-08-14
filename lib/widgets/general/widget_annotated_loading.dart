@@ -162,7 +162,6 @@ class _WidgetAnnotatedLoadingState
   ////////////////////////////////////////////////////////////////
   @override
   void dispose() {
-    // Always cancel timers in dispose to prevent memory leaks.
     _timeoutTimer?.cancel();
     AppLogger.print("TIMER CANCELLED on dispose for '${getLoadingText()}'");
     super.dispose();
@@ -191,7 +190,6 @@ class _WidgetAnnotatedLoadingState
       children: [
         Center(
           child: Lottie.asset(
-            // This logic can remain the same
             'animations/CI.json',
             animate: true,
             height: widget.height,

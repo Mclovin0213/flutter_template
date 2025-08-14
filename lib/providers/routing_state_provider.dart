@@ -30,7 +30,6 @@ RoutingState routingState(Ref ref) {
       AppLogger.debug(
         "RoutingStateProvider: User is authenticated: ${user.uid}",
       );
-      // Now check the profile state
       final profile = ref.watch(userProfileProvider);
       AppLogger.debug(
         "RoutingStateProvider: UserProfile state changed: ${profile.isLoading
@@ -51,7 +50,6 @@ RoutingState routingState(Ref ref) {
           );
           return RoutingState.authenticated;
         },
-        // If profile is loading or has an error after auth, consider it part of onboarding
         loading: () {
           AppLogger.debug(
             "RoutingStateProvider: UserProfile loading, setting state to onboarding.",
