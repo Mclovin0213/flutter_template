@@ -1,10 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_template/core/providers/app_router_provider.dart';
+import 'package:flutter_template/core/theme/theme.dart';
 import 'package:flutter_template/firebase_options.dart';
 import 'package:flutter/material.dart';
-
-import 'providers/app_router_provider.dart';
-import 'theme/theme.dart';
 
 //////////////////////////////////////////////////////////////////////////
 // MAIN entry point to start app.
