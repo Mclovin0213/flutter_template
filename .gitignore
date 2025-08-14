@@ -67,5 +67,5 @@ node_modules/
 # Task files
 # tasks.json
 # tasks/ 
-android/app/google-services.json
-ios/Runner/GoogleService-Info.plist
+/android/app/google-services.json
+/ios/Runner/GoogleService-Info.plist
