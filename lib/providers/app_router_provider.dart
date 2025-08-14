@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_template/screens/auth/screen_auth.dart';
+import 'package:flutter_template/screens/auth/screen_login.dart';
+import 'package:flutter_template/screens/auth/screen_signup.dart';
 import 'package:flutter_template/screens/auth/screen_profile_setup.dart';
 import 'package:flutter_template/screens/auth/screen_unverified_email.dart';
 import 'package:go_router/go_router.dart';
@@ -13,7 +15,6 @@ import 'package:flutter_template/providers/routing_state_provider.dart';
 import '../screens/general/screen_alternate.dart';
 import '../screens/general/screen_home.dart';
 import '../widgets/navigation/widget_primary_scaffold.dart';
-import '../screens/auth/screen_login_validation.dart';
 import 'auth_provider.dart';
 
 part 'app_router_provider.g.dart'; // Generated file for Riverpod
@@ -40,6 +41,14 @@ GoRouter goRouter(Ref ref) {
       GoRoute(
         path: ScreenAuth.routeName,
         builder: (context, state) => const ScreenAuth(),
+      ),
+      GoRoute(
+        path: ScreenLogin.routeName,
+        builder: (context, state) => const ScreenLogin(),
+      ),
+      GoRoute(
+        path: ScreenSignup.routeName,
+        builder: (context, state) => const ScreenSignup(),
       ),
       GoRoute(
         path: ScreenUnverifiedEmail.routeName,
@@ -80,19 +89,30 @@ GoRouter goRouter(Ref ref) {
           return ScreenSplash.routeName; // Show a splash/loading screen
 
         case RoutingState.unauthenticated:
-          return ScreenAuth.routeName;
+          final authFlowRoutes = [
+            ScreenAuth.routeName,
+            ScreenLogin.routeName,
+            ScreenSignup.routeName,
+          ];
+
+          if (!authFlowRoutes.contains(location)) {
+            return ScreenAuth.routeName;
+          }
+          return null;
 
         case RoutingState.onboarding:
           return ScreenProfileSetup.routeName;
 
         case RoutingState.authenticated:
-          // If we are authenticated but still on a login flow page, go home.
           final loginFlowRoutes = [
             ScreenAuth.routeName,
+            ScreenLogin.routeName,
+            ScreenSignup.routeName,
             ScreenProfileSetup.routeName,
             ScreenSplash.routeName,
             ScreenUnverifiedEmail.routeName,
           ];
+          // If we are authenticated but still on a login flow page, go home.
           if (loginFlowRoutes.contains(location)) {
             return ScreenHome.routeName;
           }

@@ -6,7 +6,7 @@ part of 'routing_state_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$routingStateHash() => r'086a0944cfbb9aba4fbd5a42d98a7ef618eceec5';
+String _$routingStateHash() => r'22d97222e1686ee3494f3c1ef76a050dadd7dc3c';
 
 /// See also [routingState].
 @ProviderFor(routingState)
